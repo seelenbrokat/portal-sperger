@@ -1,0 +1,25 @@
+# Sperger Portal – komplett getrennt von WOG (eigene Ports, Volumes, Container).
+services:
+  web:
+    build:
+      context: .
+    image: sperger-portal-web:latest
+    container_name: sperger-portal-web
+    restart: unless-stopped
+    environment:
+      PORT: 3100
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "127.0.0.1:3100:3100"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-qO-",
+          "http://127.0.0.1:3100/",
+        ]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
