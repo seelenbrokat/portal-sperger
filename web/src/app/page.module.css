@@ -1,0 +1,185 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  align-items: stretch;
+  overflow: hidden;
+  color: var(--white);
+}
+
+.heroMedia {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  transform: scale(1.04);
+  animation: drift 18s ease-in-out infinite;
+}
+
+.heroShade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, rgba(0, 45, 82, 0.88) 0%, rgba(0, 81, 146, 0.72) 48%, rgba(61, 70, 78, 0.55) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.45));
+}
+
+.heroSweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 28%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: sweep 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: clamp(2rem, 5vh, 3.5rem) clamp(1.25rem, 4vw, 2.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 380px);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 36rem;
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.logoPlate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.85rem 1rem;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+.logoPlate img {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 0.98;
+  text-transform: uppercase;
+  color: var(--white);
+  max-width: 12ch;
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.sub {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.authPanel {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--sperger-ink);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.35rem 1.4rem;
+  box-shadow: var(--shadow-md);
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
+}
+
+.authPanel h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.authPanel p {
+  margin: 0 0 1.1rem;
+  color: var(--sperger-muted);
+  font-size: 0.95rem;
+}
+
+.authForm {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.authLinks {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  font-size: 0.88rem;
+}
+
+.metaStrip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.75rem;
+  width: min(100%, 1180px);
+  margin: -1.5rem auto 0;
+  padding: 0 clamp(1.25rem, 4vw, 2.5rem) 2.5rem;
+  color: var(--sperger-slate-deep);
+  font-size: 0.92rem;
+}
+
+.metaStrip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.metaStrip strong {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--sperger-blue-deep);
+}
+
+@media (max-width: 900px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    padding-top: 3.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .headline {
+    max-width: 14ch;
+  }
+
+  .metaStrip {
+    margin-top: 0;
+  }
+}
