@@ -1,0 +1,2 @@
+rootProject.name = 'portal-sperger'
+include ':app'
