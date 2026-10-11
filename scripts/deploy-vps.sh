@@ -14,12 +14,13 @@ SCP=(sshpass -e scp -o StrictHostKeyChecking=accept-new -P "$PORT")
 
 echo "==> Paket bauen"
 rm -rf /tmp/sperger-portal-deploy
-mkdir -p /tmp/sperger-portal-deploy
-rsync -a --delete \
+mkdir -p /tmp/sperger-portal-deploy/web
+# rsync ist in manchen Agent-Images nicht verfügbar – tar reicht
+tar -C "$ROOT/web" \
   --exclude node_modules \
   --exclude .next \
-  --exclude '.git' \
-  "$ROOT/web/" /tmp/sperger-portal-deploy/web/
+  --exclude .git \
+  -cf - . | tar -C /tmp/sperger-portal-deploy/web -xf -
 cp "$ROOT/deploy/nginx/sperger.logistikberater.at.conf" /tmp/sperger-portal-deploy/
 
 echo "==> Nach $REMOTE_DIR syncen"
