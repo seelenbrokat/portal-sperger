@@ -101,6 +101,26 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
             "html_file": "route_ulm_vorarlberg.html",
         },
         {
+            "id": "ulm_schweiz",
+            "title": "Ulm → Schweiz",
+            "mail_prefix": "[Timocom Ulm→Schweiz]",
+            "start": {
+                "mode": "area",
+                "country": os.getenv("ORIGIN_COUNTRY", "DE"),
+                "city": os.getenv("ORIGIN_CITY", "Ulm"),
+                "postal_code": os.getenv("ORIGIN_POSTAL_CODE", "89073"),
+                "radius_km": ulm_radius,
+            },
+            "dest": {
+                "mode": "postal",
+                "country": "CH",
+                "postal_prefixes": [],  # ganzes Land
+                "label": "Schweiz",
+            },
+            "excel_file": "frachten_ulm_schweiz.xlsx",
+            "html_file": "route_ulm_schweiz.html",
+        },
+        {
             "id": "vorarlberg_schweiz",
             "title": "Vorarlberg → Schweiz",
             "mail_prefix": "[Timocom Vorarlberg→Schweiz]",

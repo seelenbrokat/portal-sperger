@@ -7,6 +7,7 @@ Sucht automatisch Frachten auf TIMOCOM und schreibt alle Details in Excel + HTML
 | ID | Richtung | Dateien |
 |----|----------|---------|
 | `ulm_vorarlberg` | Ulm (30 km) → Vorarlberg (AT 67/68/69) | `frachten_ulm_vorarlberg.xlsx` |
+| `ulm_schweiz` | Ulm (30 km) → Schweiz (ganz CH) | `frachten_ulm_schweiz.xlsx` |
 | `vorarlberg_schweiz` | Vorarlberg → Schweiz (ganz CH) | `frachten_vorarlberg_schweiz.xlsx` |
 | `schweiz_vorarlberg` | Schweiz → Vorarlberg | `frachten_schweiz_vorarlberg.xlsx` |
 | `schweiz_oesterreich` | Schweiz → Österreich (ganz AT), **max. 6 Lademeter** | `frachten_schweiz_oesterreich.xlsx` |
