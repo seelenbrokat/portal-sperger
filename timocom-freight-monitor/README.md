@@ -29,7 +29,7 @@ Sucht automatisch Frachten auf TIMOCOM und schreibt alle Details in Excel + HTML
 
 ## Produktion (VPS)
 
-- Host: `https://timo.logistikberater.at/`
+- Host: `https://timo.logistikberater.at/` (HTTP-Basic-Auth; Passwort nur auf dem VPS)
 - Pfad: `/opt/timocom-freight-monitor` (getrennt von Sperger/WOG)
 - Deploy: `./scripts/deploy-timo-vps.sh` (Repo-Root)
 - Service: `timocom-freight-monitor.service`
