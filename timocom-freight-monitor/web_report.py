@@ -10,6 +10,13 @@ from zoneinfo import ZoneInfo
 
 from openpyxl import load_workbook
 
+from filters import (
+    is_offer_hidden,
+    load_filters,
+    offers_for_watched,
+    visible_offers,
+)
+
 
 DISPLAY_COLUMNS = [
     ("anbieter_timocom_id", "Timocom-ID"),
@@ -171,20 +178,7 @@ COMMON_CSS = """
       font-weight: 600;
       z-index: 1;
     }
-    th:nth-child(1), th:nth-child(2),
-    td:nth-child(1), td:nth-child(2) {
-      background: #eef6fc;
-      position: sticky;
-      left: 0;
-      z-index: 2;
-    }
-    th:nth-child(1), th:nth-child(2) {
-      background: #0a2f52;
-      z-index: 3;
-    }
-    th:nth-child(2), td:nth-child(2) { left: 110px; }
     tr:hover td { background: #f7fafc; }
-    tr:hover td:nth-child(1), tr:hover td:nth-child(2) { background: #e3f0fa; }
     code {
       background: #e8eef3;
       padding: 2px 6px;
@@ -239,10 +233,111 @@ COMMON_CSS = """
     }
     .btn-dl.secondary:hover { background: var(--accent-soft); }
     .panel .btn-dl { margin-top: 10px; }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 150px;
+    }
+    .actions form { margin: 0; }
+    .btn-act {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 1.9rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 5px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font-size: 0.78rem;
+      font-weight: 650;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-act:hover { background: var(--accent-soft); border-color: var(--accent); }
+    .btn-act.danger {
+      color: #8a1f1f;
+      border-color: #e2b4b4;
+      background: #fff5f5;
+    }
+    .btn-act.danger:hover { background: #fde8e8; }
+    .btn-act.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-act.primary:hover { background: #005291; }
+    .flash {
+      background: #e7f6ec;
+      border: 1px solid #b7dfc4;
+      color: #1e5c34;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .form-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: end;
+      margin: 12px 0;
+    }
+    .form-inline label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .form-inline input {
+      min-width: 180px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid #c5d9ea;
+      font-size: 0.9rem;
+    }
+    th.col-actions, td.col-actions {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: #eef6fc;
+      min-width: 160px;
+    }
+    th.col-actions { background: #0a2f52 !important; color: #fff; z-index: 3; }
+    th:nth-child(2), td:nth-child(2) {
+      position: sticky;
+      left: 160px;
+      z-index: 2;
+      background: #eef6fc;
+    }
+    th:nth-child(2) { background: #0a2f52; color: #fff; z-index: 3; }
+    th:nth-child(3), td:nth-child(3) {
+      position: sticky;
+      left: 270px;
+      z-index: 2;
+      background: #eef6fc;
+    }
+    th:nth-child(3) { background: #0a2f52; color: #fff; z-index: 3; }
+    tr:hover td.col-actions,
+    tr:hover td:nth-child(2),
+    tr:hover td:nth-child(3) { background: #e3f0fa; }
 """
 
 
-def _load_offers(excel_path: Path) -> list[dict[str, Any]]:
+def _load_offers_raw(excel_path: Path) -> list[dict[str, Any]]:
     if not excel_path.exists():
         return []
     wb = load_workbook(excel_path, read_only=True, data_only=True)
@@ -261,6 +356,32 @@ def _load_offers(excel_path: Path) -> list[dict[str, Any]]:
     return offers
 
 
+def _load_offers(
+    excel_path: Path,
+    filters: dict[str, Any] | None = None,
+    *,
+    include_hidden: bool = False,
+) -> list[dict[str, Any]]:
+    offers = _load_offers_raw(excel_path)
+    if filters is None:
+        return offers
+    return visible_offers(offers, filters, include_hidden=include_hidden)
+
+
+def _all_offers_with_route(
+    routes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for r in routes:
+        for o in _load_offers_raw(Path(r["excel_path"])):
+            enriched = dict(o)
+            enriched["_route_id"] = r["id"]
+            enriched["_route_title"] = r["title"]
+            out.append(enriched)
+    out.sort(key=lambda o: str(o.get("zuletzt_gesehen") or ""), reverse=True)
+    return out
+
+
 def _cell(o: dict[str, Any], key: str) -> str:
     val = o.get(key)
     if val is None or val == "":
@@ -275,14 +396,49 @@ def _cell(o: dict[str, Any], key: str) -> str:
     return text
 
 
-def _table_html(offers: list[dict[str, Any]]) -> str:
-    header_cells = "".join(f"<th>{html.escape(label)}</th>" for _, label in DISPLAY_COLUMNS)
+def _action_cell(o: dict[str, Any], *, return_to: str) -> str:
+    oid = html.escape(str(o.get("offer_id") or ""))
+    sid = html.escape(str(o.get("anbieter_timocom_id") or ""))
+    name = html.escape(str(o.get("anbieter_name") or ""))
+    ret = html.escape(return_to)
+    return f"""<td class="col-actions"><div class="actions">
+      <form method="post" action="/api/hide-offer">
+        <input type="hidden" name="offer_id" value="{oid}" />
+        <input type="hidden" name="return_to" value="{ret}" />
+        <button class="btn-act" type="submit" title="Nur dieses Angebot ausblenden">Angebot ausblenden</button>
+      </form>
+      <form method="post" action="/api/hide-shipper"
+            onsubmit="return confirm('Auftraggeber dauerhaft ausblenden?\\n{name or sid}');">
+        <input type="hidden" name="timocom_id" value="{sid}" />
+        <input type="hidden" name="name" value="{name}" />
+        <input type="hidden" name="return_to" value="{ret}" />
+        <button class="btn-act danger" type="submit" title="Alle Angebote dieses Auftraggebers dauerhaft ausblenden">Auftraggeber dauerhaft</button>
+      </form>
+    </div></td>"""
+
+
+def _table_html(
+    offers: list[dict[str, Any]],
+    *,
+    return_to: str = "index.html",
+    show_actions: bool = True,
+    extra_columns: list[tuple[str, str]] | None = None,
+) -> str:
+    cols = list(DISPLAY_COLUMNS)
+    if extra_columns:
+        cols = list(extra_columns) + cols
+    header_cells = ""
+    if show_actions:
+        header_cells += '<th class="col-actions">Aktionen</th>'
+    header_cells += "".join(f"<th>{html.escape(label)}</th>" for _, label in cols)
+    col_count = len(cols) + (1 if show_actions else 0)
     if not offers:
-        body = f'<tr><td colspan="{len(DISPLAY_COLUMNS)}">Noch keine Treffer.</td></tr>'
+        body = f'<tr><td colspan="{col_count}">Noch keine Treffer.</td></tr>'
     else:
         rows = []
         for o in offers:
-            tds = "".join(f"<td>{_cell(o, key)}</td>" for key, _ in DISPLAY_COLUMNS)
+            tds = _action_cell(o, return_to=return_to) if show_actions else ""
+            tds += "".join(f"<td>{_cell(o, key)}</td>" for key, _ in cols)
             rows.append(f"<tr>{tds}</tr>")
         body = "\n".join(rows)
     return f"""<div class="table-wrap">
@@ -295,14 +451,36 @@ def _table_html(offers: list[dict[str, Any]]) -> str:
     </div>"""
 
 
+def _flash_html() -> str:
+    # Nach Redirect ?msg=… – rein clientseitig aus URL lesen
+    return """<div id="flash" class="flash" style="display:none"></div>
+<script>
+(function(){
+  var p = new URLSearchParams(location.search);
+  var msg = p.get('msg');
+  if (!msg) return;
+  var el = document.getElementById('flash');
+  el.textContent = msg;
+  el.style.display = 'block';
+  p.delete('msg');
+  var q = p.toString();
+  history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+})();
+</script>"""
+
+
 def _nav_html(
     routes: list[dict[str, Any]],
     active_id: str | None,
     *,
     analytics_active: bool = False,
+    watched_active: bool = False,
+    filters_active: bool = False,
 ) -> str:
     items = [
-        f'<a href="index.html" class="{"active" if active_id is None and not analytics_active else ""}">Alle Routen</a>',
+        f'<a href="index.html" class="{"active" if active_id is None and not analytics_active and not watched_active and not filters_active else ""}">Alle Routen</a>',
+        f'<a href="watched.html" class="{"active" if watched_active else ""}">Tisa / WOG</a>',
+        f'<a href="filters.html" class="{"active" if filters_active else ""}">Ausblenden</a>',
         f'<a href="analytics.html" class="{"active" if analytics_active else ""}">Muster / Stats</a>',
     ]
     for r in routes:
@@ -384,12 +562,21 @@ def build_index_html(
     tz_name: str = "Europe/Berlin",
     routes: list[dict[str, Any]] | None = None,
     active_route_id: str | None = None,
+    filters: dict[str, Any] | None = None,
+    return_to: str | None = None,
 ) -> str:
-    offers = _load_offers(excel_path)
+    ret = return_to or (
+        f"route_{active_route_id}.html" if active_route_id else "index.html"
+    )
+    offers = _load_offers(excel_path, filters)
     now = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S %Z")
     provider_count = len(
         {str(o.get("anbieter_timocom_id")) for o in offers if o.get("anbieter_timocom_id")}
     )
+    hidden_n = 0
+    if filters is not None:
+        raw = _load_offers_raw(excel_path)
+        hidden_n = sum(1 for o in raw if is_offer_hidden(o, filters))
     page_title = html.escape(title)
     nav = _nav_html(routes or [], active_route_id)
 
@@ -409,16 +596,19 @@ def build_index_html(
     {nav}
   </header>
   <main>
+    {_flash_html()}
     <div class="stats">
       <div class="stat"><strong>{len(offers)}</strong><span>Treffer</span></div>
       <div class="stat"><strong>{provider_count}</strong><span>Anbieter</span></div>
+      <div class="stat"><strong>{hidden_n}</strong><span>Ausgeblendet</span></div>
       <div class="stat"><strong>{html.escape(now)}</strong><span>Stand (Europe/Berlin)</span></div>
     </div>
     <div class="note">
-      Anbieter (Timocom-ID + Name) in den ersten Spalten.
-      Stats unter <a href="analytics.html">Muster / Stats</a>.
+      Angebot ausblenden = nur diese Fracht. Auftraggeber dauerhaft = alle Frachten
+      dieses Anbieters. Verwaltung unter <a href="filters.html">Ausblenden</a>.
+      Watchlist: <a href="watched.html">Tisa / WOG</a>.
     </div>
-    {_table_html(offers)}
+    {_table_html(offers, return_to=ret)}
     <footer>
       Quelle: {html.escape(str(excel_path.name))} · Seite aktualisiert sich alle 5 Minuten automatisch.
     </footer>
@@ -438,6 +628,7 @@ def write_index_html(
     tz_name: str = "Europe/Berlin",
     routes: list[dict[str, Any]] | None = None,
     active_route_id: str | None = None,
+    filters: dict[str, Any] | None = None,
 ) -> Path:
     html_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.write_text(
@@ -449,6 +640,8 @@ def write_index_html(
             tz_name=tz_name,
             routes=routes,
             active_route_id=active_route_id,
+            filters=filters,
+            return_to=html_path.name,
         ),
         encoding="utf-8",
     )
@@ -461,15 +654,20 @@ def write_hub_html(
     *,
     tz_name: str = "Europe/Berlin",
     analytics: dict[str, Any] | None = None,
+    filters: dict[str, Any] | None = None,
 ) -> Path:
     """Startseite: Navigation + Muster-Kurzüberblick + alle Routen-Tabellen."""
     now = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S %Z")
     nav = _nav_html(routes, active_id=None)
+    filt = filters if filters is not None else {}
 
     total = 0
+    hidden_total = 0
     sections = []
     for r in routes:
-        offers = _load_offers(Path(r["excel_path"]))
+        raw = _load_offers_raw(Path(r["excel_path"]))
+        offers = visible_offers(raw, filt)
+        hidden_total += len(raw) - len(offers)
         total += len(offers)
         href = html.escape(Path(r["html_path"]).name)
         sections.append(
@@ -477,7 +675,7 @@ def write_hub_html(
     <section class="section" id="{html.escape(r['id'])}">
       <h2><a href="{href}">{html.escape(r['title'])}</a> · {len(offers)} Treffer</h2>
       <p class="meta">{html.escape(r['origin_label'])} → {html.escape(r['dest_label'])}</p>
-      {_table_html(offers)}
+      {_table_html(offers, return_to='index.html')}
     </section>"""
         )
 
@@ -498,9 +696,11 @@ def write_hub_html(
     {nav}
   </header>
   <main>
+    {_flash_html()}
     <div class="stats">
       <div class="stat"><strong>{total}</strong><span>Treffer gesamt</span></div>
       <div class="stat"><strong>{len(routes)}</strong><span>Routen</span></div>
+      <div class="stat"><strong>{hidden_total}</strong><span>Ausgeblendet</span></div>
       <div class="stat"><strong>{html.escape(now)}</strong><span>Stand (Europe/Berlin)</span></div>
     </div>
     {_analytics_summary_html(analytics)}
@@ -524,7 +724,7 @@ def write_analytics_html(
 ) -> Path:
     """Eigene Seite für Mustererkennung / Kennzahlen."""
     now = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S %Z")
-    nav = _nav_html(routes, active_id="__analytics__", analytics_active=True)
+    nav = _nav_html(routes, active_id=None, analytics_active=True)
     overall = stats.get("overall") or {}
     strongest = overall.get("strongest_weekday")
     strong_txt = (
@@ -651,6 +851,258 @@ def write_analytics_html(
       </div>
     </section>
     <footer>Quelle: Excel-Dateien der Routen · aktualisiert nach jedem Suchlauf</footer>
+  </main>
+</body>
+</html>
+"""
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    html_path.write_text(content, encoding="utf-8")
+    return html_path
+
+
+def write_watched_html(
+    html_path: Path,
+    routes: list[dict[str, Any]],
+    *,
+    filters: dict[str, Any],
+    tz_name: str = "Europe/Berlin",
+) -> Path:
+    """Alle Frachten von Watchlist-Firmen (Standard: Tisa, WOG Logistics)."""
+    now = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S %Z")
+    nav = _nav_html(routes, active_id=None, watched_active=True)
+    all_offers = _all_offers_with_route(routes)
+    watched = filters.get("watched_shippers") or []
+    matched = offers_for_watched(all_offers, filters)
+
+    chips = "".join(
+        f'<span class="chip"><strong>{html.escape(w["label"])}</strong>'
+        f'<span class="meta">Match: „{html.escape(w["match"])}“</span></span>'
+        for w in watched
+    ) or '<span class="meta">Keine Watchlist-Firmen.</span>'
+
+    sections = []
+    for w in watched:
+        subset = offers_for_watched(all_offers, filters, watch_label=w["label"])
+        for o in subset:
+            o["route_title"] = o.get("_route_title") or ""
+        sections.append(
+            f"""
+    <section class="section" id="watch-{html.escape(w['label'])}">
+      <h2>{html.escape(w['label'])} · {len(subset)} Frachten</h2>
+      <p class="meta">Namensfilter (enthält): <code>{html.escape(w['match'])}</code>
+         · über alle Routen · ausgeblendete Auftraggeber/Angebote fehlen hier</p>
+      {_table_html(
+          subset,
+          return_to='watched.html',
+          extra_columns=[('route_title', 'Route'), ('_watch_label', 'Watch')],
+      )}
+    </section>"""
+        )
+
+    for o in matched:
+        o["route_title"] = o.get("_route_title") or ""
+
+    content = f"""<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="300" />
+  <title>Timocom – Tisa / WOG Logistics</title>
+  <style>{COMMON_CSS}</style>
+</head>
+<body>
+  <header>
+    <h1>Watchlist: Tisa / WOG Logistics</h1>
+    <p class="sub">Frachten dieser Firmen über alle Routen – Stand {html.escape(now)}</p>
+    {nav}
+  </header>
+  <main>
+    {_flash_html()}
+    <div class="note">
+      Zeigt alle gespeicherten Angebote, deren Anbietername den Match-Text enthält
+      (Groß/Klein egal). Firmen unter <a href="filters.html">Ausblenden</a> erweiterbar.
+    </div>
+    <div class="stats">
+      <div class="stat"><strong>{len(matched)}</strong><span>Treffer Watchlist</span></div>
+      <div class="stat"><strong>{len(watched)}</strong><span>Firmen</span></div>
+    </div>
+    <div class="chip-list">{chips}</div>
+{"".join(sections) if sections else "<p class='meta'>Keine Treffer.</p>"}
+    <footer>Daten aus Excel-Historie · Filter dauerhaft in <code>filters.json</code></footer>
+  </main>
+</body>
+</html>
+"""
+    html_path.parent.mkdir(parents=True, exist_ok=True)
+    html_path.write_text(content, encoding="utf-8")
+    return html_path
+
+
+def write_filters_html(
+    html_path: Path,
+    routes: list[dict[str, Any]],
+    *,
+    filters: dict[str, Any],
+    tz_name: str = "Europe/Berlin",
+) -> Path:
+    """Verwaltung: ausgeblendete Angebote/Auftraggeber + Watchlist."""
+    now = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S %Z")
+    nav = _nav_html(routes, active_id=None, filters_active=True)
+    all_offers = _all_offers_with_route(routes)
+    by_id = {str(o.get("offer_id")): o for o in all_offers if o.get("offer_id")}
+
+    hidden_offer_rows = []
+    for oid in filters.get("hidden_offers") or []:
+        o = by_id.get(str(oid), {})
+        name = html.escape(str(o.get("anbieter_name") or "—"))
+        route = html.escape(str(o.get("_route_title") or "—"))
+        hidden_offer_rows.append(
+            f"""<tr>
+              <td><code>{html.escape(str(oid))}</code></td>
+              <td>{name}</td>
+              <td>{route}</td>
+              <td>
+                <form method="post" action="/api/unhide-offer">
+                  <input type="hidden" name="offer_id" value="{html.escape(str(oid))}" />
+                  <input type="hidden" name="return_to" value="filters.html" />
+                  <button class="btn-act primary" type="submit">Wieder einblenden</button>
+                </form>
+              </td>
+            </tr>"""
+        )
+    if not hidden_offer_rows:
+        hidden_offer_rows.append(
+            '<tr><td colspan="4">Keine einzelnen Angebote ausgeblendet.</td></tr>'
+        )
+
+    shipper_rows = []
+    for s in filters.get("hidden_shippers") or []:
+        sid = html.escape(str(s.get("timocom_id") or ""))
+        sname = html.escape(str(s.get("name") or ""))
+        added = html.escape(str(s.get("added_at") or "—"))
+        shipper_rows.append(
+            f"""<tr>
+              <td><code>{sid or "—"}</code></td>
+              <td><strong>{sname or "—"}</strong></td>
+              <td>{added}</td>
+              <td>
+                <form method="post" action="/api/unhide-shipper">
+                  <input type="hidden" name="timocom_id" value="{sid}" />
+                  <input type="hidden" name="name" value="{sname}" />
+                  <input type="hidden" name="return_to" value="filters.html" />
+                  <button class="btn-act primary" type="submit">Freigeben</button>
+                </form>
+              </td>
+            </tr>"""
+        )
+    if not shipper_rows:
+        shipper_rows.append(
+            '<tr><td colspan="4">Keine Auftraggeber dauerhaft ausgeblendet.</td></tr>'
+        )
+
+    watch_rows = []
+    for w in filters.get("watched_shippers") or []:
+        lab = html.escape(str(w.get("label") or ""))
+        match = html.escape(str(w.get("match") or ""))
+        watch_rows.append(
+            f"""<tr>
+              <td><strong>{lab}</strong></td>
+              <td><code>{match}</code></td>
+              <td>
+                <form method="post" action="/api/watch-remove"
+                      onsubmit="return confirm('„{lab}“ von Watchlist entfernen?');">
+                  <input type="hidden" name="label" value="{lab}" />
+                  <input type="hidden" name="return_to" value="filters.html" />
+                  <button class="btn-act danger" type="submit">Entfernen</button>
+                </form>
+              </td>
+            </tr>"""
+        )
+
+    content = f"""<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timocom – Ausblenden / Watchlist</title>
+  <style>{COMMON_CSS}</style>
+</head>
+<body>
+  <header>
+    <h1>Ausblenden &amp; Watchlist</h1>
+    <p class="sub">Dauerhafte Filter · Stand {html.escape(now)}</p>
+    {nav}
+  </header>
+  <main>
+    {_flash_html()}
+    <div class="note">
+      Ausgeblendete Angebote und Auftraggeber erscheinen nicht mehr in den Tabellen
+      und der Watchlist. Excel behält die Rohdaten. Filter liegen in
+      <code>data/filters.json</code> auf dem Server.
+    </div>
+
+    <section class="section">
+      <h2>Auftraggeber dauerhaft ausblenden</h2>
+      <p class="meta">Per Name und/oder Timocom-ID. Wirkt auf alle Routen.</p>
+      <form class="form-inline" method="post" action="/api/hide-shipper">
+        <label>Timocom-ID
+          <input name="timocom_id" placeholder="z. B. 123456" />
+        </label>
+        <label>Name
+          <input name="name" placeholder="Firmenname (oder Timocom-ID)" />
+        </label>
+        <label>Notiz
+          <input name="note" placeholder="optional" />
+        </label>
+        <input type="hidden" name="return_to" value="filters.html" />
+        <button class="btn-act danger" type="submit">Dauerhaft ausblenden</button>
+      </form>
+      <div class="table-wrap" style="min-width:0">
+        <table style="min-width:0">
+          <thead><tr><th>Timocom-ID</th><th>Name</th><th>Seit</th><th></th></tr></thead>
+          <tbody>
+{"".join(shipper_rows)}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Einzelne Angebote ausgeblendet</h2>
+      <div class="table-wrap" style="min-width:0">
+        <table style="min-width:0">
+          <thead><tr><th>Angebot-ID</th><th>Anbieter</th><th>Route</th><th></th></tr></thead>
+          <tbody>
+{"".join(hidden_offer_rows)}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Watchlist-Firmen (Tisa / WOG …)</h2>
+      <p class="meta">Match = Teilstring im Anbieternamen (ohne Groß/Klein).</p>
+      <form class="form-inline" method="post" action="/api/watch-add">
+        <label>Anzeigename
+          <input name="label" placeholder="z. B. Tisa" required />
+        </label>
+        <label>Match-Text
+          <input name="match" placeholder="z. B. tisa" />
+        </label>
+        <input type="hidden" name="return_to" value="filters.html" />
+        <button class="btn-act primary" type="submit">Zur Watchlist</button>
+      </form>
+      <div class="table-wrap" style="min-width:0">
+        <table style="min-width:0">
+          <thead><tr><th>Label</th><th>Match</th><th></th></tr></thead>
+          <tbody>
+{"".join(watch_rows) if watch_rows else '<tr><td colspan="3">Leer</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+      <p class="meta"><a href="watched.html">Watchlist-Frachten öffnen →</a></p>
+    </section>
   </main>
 </body>
 </html>

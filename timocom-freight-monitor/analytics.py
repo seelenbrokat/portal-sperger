@@ -197,8 +197,16 @@ def compute_analytics(
     }
 
 
-def analytics_for_routes(routes: list[dict[str, Any]]) -> dict[str, Any]:
+def analytics_for_routes(
+    routes: list[dict[str, Any]],
+    *,
+    filters: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    from filters import visible_offers
+
     offers = load_all_offers(routes)
+    if filters is not None:
+        offers = visible_offers(offers, filters)
     overall = compute_analytics(offers)
     by_route = {}
     for route in routes:

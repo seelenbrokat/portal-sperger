@@ -16,6 +16,7 @@ import argparse
 import logging
 import os
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime
@@ -28,10 +29,17 @@ from dotenv import load_dotenv
 
 from analytics import analytics_for_routes
 from excel_store import ExcelStore
+from filters import load_filters
 from mailer import build_summary_html, send_email
 from timocom_client import TimocomClient, build_location
-from web_report import write_analytics_html, write_hub_html, write_index_html
-
+from web_api import run_api_server
+from web_report import (
+    write_analytics_html,
+    write_filters_html,
+    write_hub_html,
+    write_index_html,
+    write_watched_html,
+)
 ROOT = Path(__file__).resolve().parent
 LOG = logging.getLogger("timocom-freight-monitor")
 
@@ -223,6 +231,8 @@ def load_config() -> dict:
         "data_dir": data_dir,
         "hub_html": data_dir / "index.html",
         "analytics_html": data_dir / "analytics.html",
+        "watched_html": data_dir / "watched.html",
+        "filters_html": data_dir / "filters.html",
         "routes": routes,
         "tz_name": os.getenv("TIMEZONE", "Europe/Berlin"),
         "summary_hour": int(os.getenv("SUMMARY_HOUR", "18")),
@@ -234,6 +244,9 @@ def load_config() -> dict:
         "smtp_tls": env_bool("SMTP_USE_TLS", True),
         "mail_from": os.getenv("MAIL_FROM", "").strip(),
         "mail_to": os.getenv("MAIL_TO", "").strip(),
+        "web_api_host": os.getenv("WEB_API_HOST", "127.0.0.1").strip() or "127.0.0.1",
+        "web_api_port": int(os.getenv("WEB_API_PORT", "3120")),
+        "web_api_enabled": env_bool("WEB_API_ENABLED", True),
     }
 
 
@@ -250,6 +263,7 @@ def setup_logging(data_dir: Path) -> None:
 
 
 def refresh_web_report(cfg: dict, route: dict, store: ExcelStore) -> None:
+    filters = load_filters(cfg["data_dir"])
     path = write_index_html(
         store.path,
         route["html_path"],
@@ -259,17 +273,20 @@ def refresh_web_report(cfg: dict, route: dict, store: ExcelStore) -> None:
         tz_name=cfg["tz_name"],
         routes=cfg["routes"],
         active_route_id=route["id"],
+        filters=filters,
     )
     LOG.info("[%s] Webseite aktualisiert: %s", route["id"], path)
 
 
 def refresh_hub(cfg: dict) -> None:
-    stats = analytics_for_routes(cfg["routes"])
+    filters = load_filters(cfg["data_dir"])
+    stats = analytics_for_routes(cfg["routes"], filters=filters)
     path = write_hub_html(
         cfg["hub_html"],
         cfg["routes"],
         tz_name=cfg["tz_name"],
         analytics=stats["overall"],
+        filters=filters,
     )
     analytics_path = write_analytics_html(
         cfg["analytics_html"],
@@ -277,8 +294,55 @@ def refresh_hub(cfg: dict) -> None:
         stats,
         tz_name=cfg["tz_name"],
     )
+    watched_path = write_watched_html(
+        cfg["watched_html"],
+        cfg["routes"],
+        filters=filters,
+        tz_name=cfg["tz_name"],
+    )
+    filters_path = write_filters_html(
+        cfg["filters_html"],
+        cfg["routes"],
+        filters=filters,
+        tz_name=cfg["tz_name"],
+    )
     LOG.info("Hub aktualisiert: %s", path)
     LOG.info("Analytics aktualisiert: %s", analytics_path)
+    LOG.info("Watchlist aktualisiert: %s", watched_path)
+    LOG.info("Filterseite aktualisiert: %s", filters_path)
+
+
+def start_web_api(cfg: dict) -> None:
+    if not cfg.get("web_api_enabled", True):
+        LOG.info("Filter-API deaktiviert (WEB_API_ENABLED=false)")
+        return
+
+    def on_change() -> None:
+        # Alle Routen-HTML + Hub neu aus Excel (ohne Timocom-Suche)
+        tz = ZoneInfo(cfg["tz_name"])
+        for route in cfg["routes"]:
+            store = ExcelStore(route["excel_path"], tz=tz)
+            refresh_web_report(cfg, route, store)
+        refresh_hub(cfg)
+
+    thread = threading.Thread(
+        target=run_api_server,
+        kwargs={
+            "data_dir": cfg["data_dir"],
+            "tz_name": cfg["tz_name"],
+            "host": cfg["web_api_host"],
+            "port": cfg["web_api_port"],
+            "on_change": on_change,
+        },
+        name="timocom-web-api",
+        daemon=True,
+    )
+    thread.start()
+    LOG.info(
+        "Filter-API gestartet auf %s:%s",
+        cfg["web_api_host"],
+        cfg["web_api_port"],
+    )
 
 
 def fetch_all_offers(client: TimocomClient, route: dict, max_results: int) -> list[dict]:
@@ -487,6 +551,7 @@ def main() -> None:
     for route in cfg["routes"]:
         LOG.info("  - %s: %s → %s", route["id"], route["origin_label"], route["dest_label"])
 
+    start_web_api(cfg)
     run_all_searches(cfg, stores, client)
 
     schedule.every(cfg["interval"]).minutes.do(

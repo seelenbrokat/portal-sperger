@@ -33,6 +33,9 @@ Für neuen Cursor-Cloud-Agent / neuen Chat – Kontext komplett.
 
 - Excel + HTML unter `data/`; Angebote werden nur upsertet, **nicht gelöscht** wenn sie von Timocom verschwinden
 - Analytics: https://timo.logistikberater.at/analytics.html inkl. Excel-Download
+- **Ausblenden:** Angebot einzeln oder Auftraggeber dauerhaft (alle Routen) → `filters.html`, Persistenz `data/filters.json`
+- **Watchlist:** https://timo.logistikberater.at/watched.html – Standard Firmen **Tisa** + **WOG Logistics** (Namens-Match), erweiterbar
+- Filter-API: Flask auf `127.0.0.1:3120`, Nginx `location /api/`
 - Tagesmail 18:00 Europe/Berlin vorgesehen – **SMTP noch nicht konfiguriert** (`SMTP_*`, `MAIL_TO` in `.env`)
 
 ## Secrets (nur VPS `.env`, nicht committen)

@@ -14,6 +14,8 @@ Sucht automatisch Frachten auf TIMOCOM und schreibt alle Details in Excel + HTML
 
 - Hub: `data/index.html` (alle Tabellen + Kurz-Stats)
 - Mustererkennung: `data/analytics.html` (Wochentage, Preise, Top-Anbieter, Destinationen)
+- Ausblenden: `data/filters.html` + Buttons in den Tabellen (Angebot / Auftraggeber dauerhaft)
+- Watchlist: `data/watched.html` (Standard: Tisa, WOG Logistics)
 
 ## Funktionen
 
