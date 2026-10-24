@@ -197,6 +197,48 @@ COMMON_CSS = """
       color: var(--muted);
       font-size: 0.85rem;
     }
+    .downloads {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .downloads li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fafcfe;
+    }
+    .downloads .route-name { font-weight: 600; color: var(--ink); }
+    .downloads .file-name { color: var(--muted); font-size: 0.88rem; }
+    .btn-dl {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.2rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff !important;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .btn-dl:hover { background: #005291; }
+    .btn-dl.secondary {
+      background: #fff;
+      color: var(--accent) !important;
+      border: 1px solid var(--accent);
+    }
+    .btn-dl.secondary:hover { background: var(--accent-soft); }
+    .panel .btn-dl { margin-top: 10px; }
 """
 
 
@@ -502,11 +544,20 @@ def write_analytics_html(
         price_note = "<li>Keine Preise in den aktuellen Treffern.</li>"
 
     by_route_blocks = []
+    download_items = []
     for route in routes:
         rstats = (stats.get("by_route") or {}).get(route["id"]) or {}
         r_strong = rstats.get("strongest_weekday")
         r_strong_txt = (
             f"{r_strong['weekday']} ({r_strong['count']})" if r_strong else "—"
+        )
+        excel_name = Path(route["excel_path"]).name
+        excel_href = html.escape(excel_name)
+        excel_exists = Path(route["excel_path"]).exists()
+        dl_btn = (
+            f'<a class="btn-dl" href="{excel_href}" download="{excel_href}">Excel laden</a>'
+            if excel_exists
+            else '<span class="meta">Excel noch nicht vorhanden</span>'
         )
         by_route_blocks.append(
             f"""
@@ -516,8 +567,24 @@ def write_analytics_html(
            stärkster Tag: {html.escape(r_strong_txt)} ·
            Ø Preis: {rstats.get('avg_price') if rstats.get('avg_price') is not None else '—'}</p>
         {_weekday_bars(rstats.get('weekday_counts') or [])}
+        {dl_btn}
       </div>"""
         )
+        download_items.append(
+            f"""<li>
+          <div>
+            <div class="route-name">{html.escape(route['title'])}</div>
+            <div class="file-name">{excel_href}</div>
+          </div>
+          {dl_btn if excel_exists else '<span class="meta">fehlt</span>'}
+        </li>"""
+        )
+
+    downloads_html = (
+        "<ul class='downloads'>" + "".join(download_items) + "</ul>"
+        if download_items
+        else "<p class='meta'>Noch keine Excel-Dateien.</p>"
+    )
 
     content = f"""<!DOCTYPE html>
 <html lang="de">
@@ -546,6 +613,12 @@ def write_analytics_html(
       <div class="stat"><strong>{overall.get('avg_length_m') if overall.get('avg_length_m') is not None else '—'}</strong><span>Ø Lademeter</span></div>
       <div class="stat"><strong>{overall.get('avg_weight_t') if overall.get('avg_weight_t') is not None else '—'}</strong><span>Ø Gewicht (t)</span></div>
     </div>
+
+    <section class="section" id="excel-download">
+      <h2>Excel herunterladen</h2>
+      <p class="meta">Vollständige Listen inkl. Anbieter und Historie – eine Datei pro Route.</p>
+      {downloads_html}
+    </section>
 
     <div class="grid-2">
       <div class="panel">
