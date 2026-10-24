@@ -26,7 +26,15 @@ Sucht automatisch Frachten auf TIMOCOM und schreibt alle Details in Excel + HTML
   - häufigste Start-/Zielorte
 - Täglich gegen **18:00 Uhr (Europe/Berlin)** E-Mail-Zusammenfassung
 
-## Installation
+## Produktion (VPS)
+
+- Host: `https://timo.logistikberater.at/`
+- Pfad: `/opt/timocom-freight-monitor` (getrennt von Sperger/WOG)
+- Deploy: `./scripts/deploy-timo-vps.sh` (Repo-Root)
+- Service: `timocom-freight-monitor.service`
+- Nginx liefert `data/*.html` aus
+
+## Installation (lokal)
 
 ```bash
 cd timocom-freight-monitor
