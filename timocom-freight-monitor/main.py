@@ -82,6 +82,7 @@ def format_filter_label(route: dict[str, Any]) -> str:
 def default_routes(data_dir: Path) -> list[dict[str, Any]]:
     """Standard-Routen inkl. Excel-/HTML-Pfaden."""
     ulm_radius = int(os.getenv("ORIGIN_RADIUS_KM", "30"))
+    augsburg_radius = int(os.getenv("AUGSBURG_RADIUS_KM", "30"))
     vlbg = _split_csv(os.getenv("DEST_POSTAL_PREFIXES", ",".join(VLBG_PREFIXES))) or list(
         VLBG_PREFIXES
     )
@@ -127,6 +128,46 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
             },
             "excel_file": "frachten_ulm_schweiz.xlsx",
             "html_file": "route_ulm_schweiz.html",
+        },
+        {
+            "id": "augsburg_vorarlberg",
+            "title": "Augsburg → Vorarlberg",
+            "mail_prefix": "[Timocom Augsburg→Vorarlberg]",
+            "start": {
+                "mode": "area",
+                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
+                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
+                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
+                "radius_km": augsburg_radius,
+            },
+            "dest": {
+                "mode": "postal",
+                "country": "AT",
+                "postal_prefixes": vlbg,
+                "label": "Vorarlberg",
+            },
+            "excel_file": "frachten_augsburg_vorarlberg.xlsx",
+            "html_file": "route_augsburg_vorarlberg.html",
+        },
+        {
+            "id": "augsburg_schweiz",
+            "title": "Augsburg → Schweiz",
+            "mail_prefix": "[Timocom Augsburg→Schweiz]",
+            "start": {
+                "mode": "area",
+                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
+                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
+                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
+                "radius_km": augsburg_radius,
+            },
+            "dest": {
+                "mode": "postal",
+                "country": "CH",
+                "postal_prefixes": [],
+                "label": "Schweiz",
+            },
+            "excel_file": "frachten_augsburg_schweiz.xlsx",
+            "html_file": "route_augsburg_schweiz.html",
         },
         {
             "id": "vorarlberg_schweiz",
