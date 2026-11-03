@@ -82,7 +82,7 @@ def format_filter_label(route: dict[str, Any]) -> str:
 def default_routes(data_dir: Path) -> list[dict[str, Any]]:
     """Standard-Routen inkl. Excel-/HTML-Pfaden."""
     ulm_radius = int(os.getenv("ORIGIN_RADIUS_KM", "30"))
-    augsburg_radius = int(os.getenv("AUGSBURG_RADIUS_KM", "30"))
+    villingen_radius = int(os.getenv("VILLINGEN_RADIUS_KM", "30"))
     vlbg = _split_csv(os.getenv("DEST_POSTAL_PREFIXES", ",".join(VLBG_PREFIXES))) or list(
         VLBG_PREFIXES
     )
@@ -130,15 +130,15 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
             "html_file": "route_ulm_schweiz.html",
         },
         {
-            "id": "augsburg_vorarlberg",
-            "title": "Augsburg → Vorarlberg",
-            "mail_prefix": "[Timocom Augsburg→Vorarlberg]",
+            "id": "villingen_vorarlberg",
+            "title": "Villingen-Schwenningen → Vorarlberg",
+            "mail_prefix": "[Timocom VS→Vorarlberg]",
             "start": {
                 "mode": "area",
-                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
-                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
-                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
-                "radius_km": augsburg_radius,
+                "country": os.getenv("VILLINGEN_COUNTRY", "DE"),
+                "city": os.getenv("VILLINGEN_CITY", "Villingen-Schwenningen"),
+                "postal_code": os.getenv("VILLINGEN_POSTAL_CODE", "78054"),
+                "radius_km": villingen_radius,
             },
             "dest": {
                 "mode": "postal",
@@ -146,19 +146,19 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
                 "postal_prefixes": vlbg,
                 "label": "Vorarlberg",
             },
-            "excel_file": "frachten_augsburg_vorarlberg.xlsx",
-            "html_file": "route_augsburg_vorarlberg.html",
+            "excel_file": "frachten_villingen_vorarlberg.xlsx",
+            "html_file": "route_villingen_vorarlberg.html",
         },
         {
-            "id": "augsburg_schweiz",
-            "title": "Augsburg → Schweiz",
-            "mail_prefix": "[Timocom Augsburg→Schweiz]",
+            "id": "villingen_schweiz",
+            "title": "Villingen-Schwenningen → Schweiz",
+            "mail_prefix": "[Timocom VS→Schweiz]",
             "start": {
                 "mode": "area",
-                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
-                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
-                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
-                "radius_km": augsburg_radius,
+                "country": os.getenv("VILLINGEN_COUNTRY", "DE"),
+                "city": os.getenv("VILLINGEN_CITY", "Villingen-Schwenningen"),
+                "postal_code": os.getenv("VILLINGEN_POSTAL_CODE", "78054"),
+                "radius_km": villingen_radius,
             },
             "dest": {
                 "mode": "postal",
@@ -166,8 +166,8 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
                 "postal_prefixes": [],
                 "label": "Schweiz",
             },
-            "excel_file": "frachten_augsburg_schweiz.xlsx",
-            "html_file": "route_augsburg_schweiz.html",
+            "excel_file": "frachten_villingen_schweiz.xlsx",
+            "html_file": "route_villingen_schweiz.html",
         },
         {
             "id": "vorarlberg_schweiz",

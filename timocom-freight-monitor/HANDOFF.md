@@ -25,13 +25,11 @@ Für neuen Cursor-Cloud-Agent / neuen Chat – Kontext komplett.
 |----|----------|
 | `ulm_vorarlberg` | Ulm 30 km → Vorarlberg (67/68/69) |
 | `ulm_schweiz` | Ulm 30 km → ganze CH |
-| `augsburg_vorarlberg` | Augsburg 30 km → Vorarlberg (67/68/69) |
-| `augsburg_schweiz` | Augsburg 30 km → ganze CH |
+| `villingen_vorarlberg` | Villingen-Schwenningen 30 km → Vorarlberg (67/68/69) |
+| `villingen_schweiz` | Villingen-Schwenningen 30 km → ganze CH |
 | `vorarlberg_schweiz` | Vorarlberg → ganze CH |
 | `schweiz_vorarlberg` | CH → Vorarlberg |
 | `schweiz_oesterreich` | CH → ganz AT, max. 6 Lademeter |
-
-Hinweis: Augsburg lag **nicht** im alten Ulm-30-km-Umkreis (~75 km Abstand) und fehlte deshalb in den Ergebnissen.
 
 ## Verhalten
 
