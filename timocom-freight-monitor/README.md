@@ -8,9 +8,11 @@ Sucht automatisch Frachten auf TIMOCOM und schreibt alle Details in Excel + HTML
 |----|----------|---------|
 | `ulm_vorarlberg` | Ulm (30 km) → Vorarlberg (AT 67/68/69) | `frachten_ulm_vorarlberg.xlsx` |
 | `ulm_schweiz` | Ulm (30 km) → Schweiz (ganz CH) | `frachten_ulm_schweiz.xlsx` |
-| `villingen_vorarlberg` | Villingen-Schwenningen (30 km) → Vorarlberg (AT 67/68/69) | `frachten_villingen_vorarlberg.xlsx` |
-| `villingen_schweiz` | Villingen-Schwenningen (30 km) → Schweiz (ganz CH) | `frachten_villingen_schweiz.xlsx` |
+| `augsburg_vorarlberg` | Augsburg (30 km) → Vorarlberg (AT 67/68/69) | `frachten_augsburg_vorarlberg.xlsx` |
+| `augsburg_schweiz` | Augsburg (30 km) → Schweiz (ganz CH) | `frachten_augsburg_schweiz.xlsx` |
 | `vorarlberg_schweiz` | Vorarlberg → Schweiz (ganz CH) | `frachten_vorarlberg_schweiz.xlsx` |
+| `vorarlberg_stueckgut_at` | Vorarlberg → Österreich, Stückgut **≤2,4 m / ≤2,4 t** | `frachten_vorarlberg_stueckgut_at.xlsx` |
+| `vorarlberg_stueckgut_de` | Vorarlberg → Deutschland, Stückgut **≤2,4 m / ≤2,4 t** | `frachten_vorarlberg_stueckgut_de.xlsx` |
 | `schweiz_vorarlberg` | Schweiz → Vorarlberg | `frachten_schweiz_vorarlberg.xlsx` |
 | `schweiz_oesterreich` | Schweiz → Österreich (ganz AT), **max. 6 Lademeter** | `frachten_schweiz_oesterreich.xlsx` |
 

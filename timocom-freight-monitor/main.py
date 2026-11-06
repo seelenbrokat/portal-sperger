@@ -72,21 +72,29 @@ def format_location_label(spec: dict[str, Any]) -> str:
 
 def format_filter_label(route: dict[str, Any]) -> str:
     parts = []
+    if route.get("stueckgut"):
+        parts.append("Stückgut")
     if route.get("length_max_m") is not None:
         parts.append(f"max. {route['length_max_m']} Lademeter")
     if route.get("length_min_m") is not None:
         parts.append(f"min. {route['length_min_m']} Lademeter")
+    if route.get("weight_max_t") is not None:
+        parts.append(f"max. {route['weight_max_t']} t")
+    if route.get("weight_min_t") is not None:
+        parts.append(f"min. {route['weight_min_t']} t")
     return ", ".join(parts)
 
 
 def default_routes(data_dir: Path) -> list[dict[str, Any]]:
     """Standard-Routen inkl. Excel-/HTML-Pfaden."""
     ulm_radius = int(os.getenv("ORIGIN_RADIUS_KM", "30"))
-    villingen_radius = int(os.getenv("VILLINGEN_RADIUS_KM", "30"))
+    augsburg_radius = int(os.getenv("AUGSBURG_RADIUS_KM", "30"))
     vlbg = _split_csv(os.getenv("DEST_POSTAL_PREFIXES", ",".join(VLBG_PREFIXES))) or list(
         VLBG_PREFIXES
     )
     ch_at_max_m = float(os.getenv("CH_AT_MAX_LENGTH_M", "6"))
+    stueckgut_max_m = float(os.getenv("STUECKGUT_MAX_LENGTH_M", "2.4"))
+    stueckgut_max_t = float(os.getenv("STUECKGUT_MAX_WEIGHT_T", "2.4"))
 
     routes = [
         {
@@ -130,15 +138,15 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
             "html_file": "route_ulm_schweiz.html",
         },
         {
-            "id": "villingen_vorarlberg",
-            "title": "Villingen-Schwenningen → Vorarlberg",
-            "mail_prefix": "[Timocom VS→Vorarlberg]",
+            "id": "augsburg_vorarlberg",
+            "title": "Augsburg → Vorarlberg",
+            "mail_prefix": "[Timocom Augsburg→Vorarlberg]",
             "start": {
                 "mode": "area",
-                "country": os.getenv("VILLINGEN_COUNTRY", "DE"),
-                "city": os.getenv("VILLINGEN_CITY", "Villingen-Schwenningen"),
-                "postal_code": os.getenv("VILLINGEN_POSTAL_CODE", "78054"),
-                "radius_km": villingen_radius,
+                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
+                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
+                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
+                "radius_km": augsburg_radius,
             },
             "dest": {
                 "mode": "postal",
@@ -146,19 +154,19 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
                 "postal_prefixes": vlbg,
                 "label": "Vorarlberg",
             },
-            "excel_file": "frachten_villingen_vorarlberg.xlsx",
-            "html_file": "route_villingen_vorarlberg.html",
+            "excel_file": "frachten_augsburg_vorarlberg.xlsx",
+            "html_file": "route_augsburg_vorarlberg.html",
         },
         {
-            "id": "villingen_schweiz",
-            "title": "Villingen-Schwenningen → Schweiz",
-            "mail_prefix": "[Timocom VS→Schweiz]",
+            "id": "augsburg_schweiz",
+            "title": "Augsburg → Schweiz",
+            "mail_prefix": "[Timocom Augsburg→Schweiz]",
             "start": {
                 "mode": "area",
-                "country": os.getenv("VILLINGEN_COUNTRY", "DE"),
-                "city": os.getenv("VILLINGEN_CITY", "Villingen-Schwenningen"),
-                "postal_code": os.getenv("VILLINGEN_POSTAL_CODE", "78054"),
-                "radius_km": villingen_radius,
+                "country": os.getenv("AUGSBURG_COUNTRY", "DE"),
+                "city": os.getenv("AUGSBURG_CITY", "Augsburg"),
+                "postal_code": os.getenv("AUGSBURG_POSTAL_CODE", "86150"),
+                "radius_km": augsburg_radius,
             },
             "dest": {
                 "mode": "postal",
@@ -166,8 +174,8 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
                 "postal_prefixes": [],
                 "label": "Schweiz",
             },
-            "excel_file": "frachten_villingen_schweiz.xlsx",
-            "html_file": "route_villingen_schweiz.html",
+            "excel_file": "frachten_augsburg_schweiz.xlsx",
+            "html_file": "route_augsburg_schweiz.html",
         },
         {
             "id": "vorarlberg_schweiz",
@@ -187,6 +195,50 @@ def default_routes(data_dir: Path) -> list[dict[str, Any]]:
             },
             "excel_file": "frachten_vorarlberg_schweiz.xlsx",
             "html_file": "route_vorarlberg_schweiz.html",
+        },
+        {
+            "id": "vorarlberg_stueckgut_at",
+            "title": "Vorarlberg → AT Stückgut",
+            "mail_prefix": "[Timocom VLBG→AT Stückgut ≤2,4m/2,4t]",
+            "start": {
+                "mode": "postal",
+                "country": "AT",
+                "postal_prefixes": vlbg,
+                "label": "Vorarlberg",
+            },
+            "dest": {
+                "mode": "postal",
+                "country": "AT",
+                "postal_prefixes": [],  # ganz Österreich
+                "label": "Österreich",
+            },
+            "stueckgut": True,
+            "length_max_m": stueckgut_max_m,
+            "weight_max_t": stueckgut_max_t,
+            "excel_file": "frachten_vorarlberg_stueckgut_at.xlsx",
+            "html_file": "route_vorarlberg_stueckgut_at.html",
+        },
+        {
+            "id": "vorarlberg_stueckgut_de",
+            "title": "Vorarlberg → DE Stückgut",
+            "mail_prefix": "[Timocom VLBG→DE Stückgut ≤2,4m/2,4t]",
+            "start": {
+                "mode": "postal",
+                "country": "AT",
+                "postal_prefixes": vlbg,
+                "label": "Vorarlberg",
+            },
+            "dest": {
+                "mode": "postal",
+                "country": "DE",
+                "postal_prefixes": [],  # ganz Deutschland
+                "label": "Deutschland",
+            },
+            "stueckgut": True,
+            "length_max_m": stueckgut_max_m,
+            "weight_max_t": stueckgut_max_t,
+            "excel_file": "frachten_vorarlberg_stueckgut_de.xlsx",
+            "html_file": "route_vorarlberg_stueckgut_de.html",
         },
         {
             "id": "schweiz_vorarlberg",
@@ -391,12 +443,16 @@ def fetch_all_offers(client: TimocomClient, route: dict, max_results: int) -> li
     dest = build_location(route["dest"])
     length_min = route.get("length_min_m")
     length_max = route.get("length_max_m")
+    weight_min = route.get("weight_min_t")
+    weight_max = route.get("weight_max_t")
     offers = client.search_freight_offers(
         start_location=start,
         destination_location=dest,
         max_results=max_results,
         length_min_m=length_min,
         length_max_m=length_max,
+        weight_min_t=weight_min,
+        weight_max_t=weight_max,
     )
     all_offers = list(offers)
     first = max_results
@@ -408,6 +464,8 @@ def fetch_all_offers(client: TimocomClient, route: dict, max_results: int) -> li
             first_result=first,
             length_min_m=length_min,
             length_max_m=length_max,
+            weight_min_t=weight_min,
+            weight_max_t=weight_max,
         )
         if not offers:
             break

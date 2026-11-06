@@ -77,6 +77,8 @@ class TimocomClient:
         first_result: int = 0,
         length_min_m: float | None = None,
         length_max_m: float | None = None,
+        weight_min_t: float | None = None,
+        weight_max_t: float | None = None,
         # Legacy-Parameter (Umkreis → PLZ)
         origin_city: str | None = None,
         origin_country: str | None = None,
@@ -112,6 +114,13 @@ class TimocomClient:
             if length_max_m is not None:
                 length_range["inclusiveMaximum"] = float(length_max_m)
             body["lengthRange_m"] = length_range
+        if weight_min_t is not None or weight_max_t is not None:
+            weight_range: dict[str, float] = {}
+            if weight_min_t is not None:
+                weight_range["inclusiveMinimum"] = float(weight_min_t)
+            if weight_max_t is not None:
+                weight_range["inclusiveMaximum"] = float(weight_max_t)
+            body["weightRange_t"] = weight_range
 
         url = f"{self.base_url}/freight-offers/search"
         resp = self.session.post(url, json=body, timeout=self.timeout)
@@ -124,19 +133,42 @@ class TimocomClient:
         if not isinstance(payload, list):
             return []
         enriched = self.enrich_offers(payload)
-        if length_max_m is not None:
-            capped = float(length_max_m)
-            filtered = []
-            for offer in enriched:
+        return self._apply_size_caps(
+            enriched,
+            length_max_m=length_max_m,
+            weight_max_t=weight_max_t,
+        )
+
+    @staticmethod
+    def _apply_size_caps(
+        offers: list[dict[str, Any]],
+        *,
+        length_max_m: float | None,
+        weight_max_t: float | None,
+    ) -> list[dict[str, Any]]:
+        """Client-seitiger Cap falls API-Filter unvollständig greift."""
+        if length_max_m is None and weight_max_t is None:
+            return offers
+        length_cap = float(length_max_m) if length_max_m is not None else None
+        weight_cap = float(weight_max_t) if weight_max_t is not None else None
+        filtered: list[dict[str, Any]] = []
+        for offer in offers:
+            if length_cap is not None:
                 length = offer.get("length_m")
                 try:
-                    if length is not None and float(length) > capped:
+                    if length is not None and float(length) > length_cap:
                         continue
                 except (TypeError, ValueError):
                     pass
-                filtered.append(offer)
-            return filtered
-        return enriched
+            if weight_cap is not None:
+                weight = offer.get("weight_t")
+                try:
+                    if weight is not None and float(weight) > weight_cap:
+                        continue
+                except (TypeError, ValueError):
+                    pass
+            filtered.append(offer)
+        return filtered
 
     def lookup_freight_offers(self, ids: list[str]) -> list[dict[str, Any]]:
         """Holt Angebotsdetails inkl. Anbieter (customer.id / customer.name)."""
