@@ -1,0 +1,17 @@
+[Unit]
+Description=Timocom Freight Monitor (timo.logistikberater.at)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/timocom-freight-monitor
+EnvironmentFile=-/opt/timocom-freight-monitor/.env
+ExecStart=/opt/timocom-freight-monitor/.venv/bin/python /opt/timocom-freight-monitor/main.py
+Restart=always
+RestartSec=30
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
