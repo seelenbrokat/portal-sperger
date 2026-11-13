@@ -359,11 +359,13 @@ export function updateSendungStatus(id: string, status: string): Sendung | null 
 
 /** GS1-ähnliche SSCC (18 Ziffern) für Etiketten – Demo, ohne GS1-Company-Prefix. */
 export function buildSscc(sendungId: string, colloIndex: number): string {
-  const digits = `${Date.now()}`.slice(-10) + sendungId.replace(/\D/g, "").slice(-4).padStart(4, "0");
-  const base = `3${digits.slice(0, 15)}${String(colloIndex).padStart(1, "0")}`.slice(0, 17);
+  const idDigits = (sendungId.replace(/\D/g, "") || "0").padStart(6, "0").slice(-6);
+  const timeDigits = String(Date.now()).replace(/\D/g, "").slice(-9).padStart(9, "0");
+  const collo = String(Math.max(1, Math.min(9, colloIndex | 0)));
+  const base = `3${timeDigits}${idDigits}${collo}`.replace(/\D/g, "").padEnd(17, "0").slice(0, 17);
   let sum = 0;
   for (let i = 0; i < 17; i++) {
-    const n = Number(base[16 - i]);
+    const n = Number(base[16 - i] || "0");
     sum += i % 2 === 0 ? n * 3 : n;
   }
   const check = (10 - (sum % 10)) % 10;
