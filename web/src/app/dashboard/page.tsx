@@ -58,6 +58,9 @@ export default function DashboardPage() {
         <Link className="btn btn-secondary" href="/adressbuch">
           Adressbuch
         </Link>
+        <Link className="btn btn-secondary" href="/dokumente">
+          Dokumente
+        </Link>
         <Link className="btn btn-secondary" href="/track">
           Sendung verfolgen
         </Link>
@@ -83,7 +86,9 @@ export default function DashboardPage() {
             <tbody>
               {sendungen.slice(0, 8).map((s) => (
                 <tr key={s.id}>
-                  <td>{s.referenz}</td>
+                  <td>
+                    <Link href={`/sendungen/${s.id}`}>{s.referenz}</Link>
+                  </td>
                   <td>
                     {s.abholort} → {s.zustellort}
                   </td>

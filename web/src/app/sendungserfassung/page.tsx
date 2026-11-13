@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { PortalShell, usePortalEmail } from "../../components/PortalShell";
 import {
@@ -34,6 +36,7 @@ const empty = {
 
 export default function SendungserfassungPage() {
   const email = usePortalEmail();
+  const router = useRouter();
   const [form, setForm] = useState(empty);
   const [items, setItems] = useState<Sendung[]>([]);
   const [kunden, setKunden] = useState<Kunde[]>([]);
@@ -114,6 +117,7 @@ export default function SendungserfassungPage() {
     setItems(listSendungen());
     setForm({ ...empty, kundeId: form.kundeId });
     setMessage(`Sendung ${saved.referenz} erfasst (${saved.id}).`);
+    router.push(`/sendungen/${saved.id}`);
   }
 
   return (
@@ -355,7 +359,9 @@ export default function SendungserfassungPage() {
                   {items.map((item) => (
                     <tr key={item.id}>
                       <td>
-                        <strong>{item.referenz}</strong>
+                        <Link href={`/sendungen/${item.id}`}>
+                          <strong>{item.referenz}</strong>
+                        </Link>
                         <div
                           style={{
                             color: "var(--sperger-muted)",
@@ -375,7 +381,33 @@ export default function SendungserfassungPage() {
                       <td>
                         <span className={styles.badge}>{item.status}</span>
                       </td>
-                      <td>{formatWhen(item.createdAt)}</td>
+                      <td>
+                        <div className={styles.actions}>
+                          <Link
+                            className="btn btn-secondary"
+                            href={`/sendungen/${item.id}/etiketten`}
+                            target="_blank"
+                          >
+                            Etiketten
+                          </Link>
+                          <Link
+                            className="btn btn-secondary"
+                            href={`/sendungen/${item.id}/ladeliste`}
+                            target="_blank"
+                          >
+                            Ladeliste
+                          </Link>
+                        </div>
+                        <div
+                          style={{
+                            color: "var(--sperger-muted)",
+                            fontSize: "0.82rem",
+                            marginTop: "0.25rem",
+                          }}
+                        >
+                          {formatWhen(item.createdAt)}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

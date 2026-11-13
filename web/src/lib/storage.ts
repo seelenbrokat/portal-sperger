@@ -91,6 +91,44 @@ export type Partner = {
   createdAt: string;
 };
 
+export type DocType =
+  | "LABEL"
+  | "LOADING_LIST"
+  | "CMR"
+  | "INVOICE"
+  | "CUSTOMS_PAPER"
+  | "POD"
+  | "ABLIEFERBELEG"
+  | "CUSTOMER_UPLOAD"
+  | "OTHER";
+
+export const DOC_TYPE_LABELS: Record<DocType, string> = {
+  LABEL: "Etikett",
+  LOADING_LIST: "Ladeliste",
+  CMR: "CMR / Frachtbrief",
+  INVOICE: "Rechnung",
+  CUSTOMS_PAPER: "Zollpapier",
+  POD: "POD",
+  ABLIEFERBELEG: "Ablieferbeleg",
+  CUSTOMER_UPLOAD: "Kundenupload",
+  OTHER: "Sonstiges",
+};
+
+export type Dokument = {
+  id: string;
+  sendungId: string;
+  referenz: string;
+  type: DocType;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  /** data URL for small browser-stored files; print stubs may be empty */
+  dataUrl?: string;
+  note: string;
+  createdAt: string;
+  createdBy: string;
+};
+
 const KEYS = {
   sendungen: "sperger.sendungen",
   zoll: "sperger.zoll",
@@ -98,6 +136,7 @@ const KEYS = {
   adressen: "sperger.adressen",
   mandanten: "sperger.mandanten",
   partner: "sperger.partner",
+  dokumente: "sperger.dokumente",
   seeded: "sperger.seed.v1",
 } as const;
 
@@ -287,6 +326,15 @@ export function listSendungen(): Sendung[] {
   );
 }
 
+export function getSendung(id: string): Sendung | null {
+  return listSendungen().find((s) => s.id === id) || null;
+}
+
+export function getSendungByReferenz(referenz: string): Sendung | null {
+  const ref = referenz.trim().toUpperCase();
+  return listSendungen().find((s) => s.referenz === ref) || null;
+}
+
 export function saveSendung(entry: Omit<Sendung, "id" | "createdAt">): Sendung {
   ensureSeed();
   const item: Sendung = {
@@ -298,6 +346,34 @@ export function saveSendung(entry: Omit<Sendung, "id" | "createdAt">): Sendung {
   all.unshift(item);
   writeList(KEYS.sendungen, all);
   return item;
+}
+
+export function updateSendungStatus(id: string, status: string): Sendung | null {
+  const all = listSendungen();
+  const idx = all.findIndex((s) => s.id === id);
+  if (idx < 0) return null;
+  all[idx] = { ...all[idx], status };
+  writeList(KEYS.sendungen, all);
+  return all[idx];
+}
+
+/** GS1-ähnliche SSCC (18 Ziffern) für Etiketten – Demo, ohne GS1-Company-Prefix. */
+export function buildSscc(sendungId: string, colloIndex: number): string {
+  const digits = `${Date.now()}`.slice(-10) + sendungId.replace(/\D/g, "").slice(-4).padStart(4, "0");
+  const base = `3${digits.slice(0, 15)}${String(colloIndex).padStart(1, "0")}`.slice(0, 17);
+  let sum = 0;
+  for (let i = 0; i < 17; i++) {
+    const n = Number(base[16 - i]);
+    sum += i % 2 === 0 ? n * 3 : n;
+  }
+  const check = (10 - (sum % 10)) % 10;
+  return `${base}${check}`;
+}
+
+export function colloCount(sendung: Sendung): number {
+  const n = Number.parseInt(sendung.colli || "1", 10);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(n, 40);
 }
 
 export function listZollvorgaenge(): Zollvorgang[] {
@@ -504,4 +580,63 @@ export function savePartner(
   all.unshift(item);
   writeList(KEYS.partner, all);
   return item;
+}
+
+/* ---------- Dokumente ---------- */
+
+export function listDokumente(sendungId?: string): Dokument[] {
+  ensureSeed();
+  const all = readList<Dokument>(KEYS.dokumente).sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+  return sendungId ? all.filter((d) => d.sendungId === sendungId) : all;
+}
+
+export function saveDokument(
+  entry: Omit<Dokument, "id" | "createdAt">,
+): Dokument {
+  ensureSeed();
+  const item: Dokument = {
+    ...entry,
+    id: uid("DOC"),
+    createdAt: new Date().toISOString(),
+  };
+  const all = listDokumente();
+  all.unshift(item);
+  writeList(KEYS.dokumente, all);
+  return item;
+}
+
+export function deleteDokument(id: string) {
+  writeList(
+    KEYS.dokumente,
+    listDokumente().filter((d) => d.id !== id),
+  );
+}
+
+export function recordPrintDocument(
+  sendung: Sendung,
+  type: "LABEL" | "LOADING_LIST",
+  createdBy: string,
+): Dokument {
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const fileName =
+    type === "LABEL"
+      ? `Etiketten-${sendung.referenz}-${stamp}.pdf`
+      : `Ladeliste-${sendung.referenz}-${stamp}.pdf`;
+  return saveDokument({
+    sendungId: sendung.id,
+    referenz: sendung.referenz,
+    type,
+    fileName,
+    mimeType: "application/pdf",
+    sizeBytes: 0,
+    note: type === "LABEL" ? "Etiketten-Druckansicht" : "Ladeliste / Auftragsbestätigung",
+    createdBy,
+  });
+}
+
+export function getKunde(id?: string): Kunde | null {
+  if (!id) return null;
+  return listKunden().find((k) => k.id === id) || null;
 }

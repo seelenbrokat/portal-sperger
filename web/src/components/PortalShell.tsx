@@ -12,6 +12,7 @@ const NAV = [
   { href: "/dashboard", label: "Übersicht" },
   { href: "/sendungserfassung", label: "Sendungserfassung" },
   { href: "/zollerfassung", label: "Zollerfassung" },
+  { href: "/dokumente", label: "Dokumente" },
   { href: "/kunden", label: "Kunden" },
   { href: "/adressbuch", label: "Adressbuch" },
   { href: "/mandanten", label: "Mandanten" },
@@ -70,7 +71,13 @@ export function PortalShell({
             <Link
               key={item.href}
               href={item.href}
-              className={pathname === item.href ? styles.active : undefined}
+              className={
+                pathname === item.href ||
+                (item.href === "/sendungserfassung" &&
+                  pathname.startsWith("/sendungen"))
+                  ? styles.active
+                  : undefined
+              }
             >
               {item.label}
             </Link>
