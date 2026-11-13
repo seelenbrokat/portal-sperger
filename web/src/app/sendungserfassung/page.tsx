@@ -1,21 +1,29 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { PortalShell, usePortalEmail } from "../../components/PortalShell";
 import {
-  formatWhen,
+  formatAddress,
+  listAdressen,
+  listKunden,
   listSendungen,
   saveSendung,
+  type Adresse,
+  type Kunde,
   type Sendung,
+  formatWhen,
 } from "../../lib/storage";
 import styles from "../erfassung.module.css";
 
 const empty = {
   referenz: "",
+  kundeId: "",
   absender: "",
   empfaenger: "",
   abholort: "",
   zustellort: "",
+  abholAdresseId: "",
+  zustellAdresseId: "",
   colli: "",
   gewichtKg: "",
   lademeter: "",
@@ -28,12 +36,34 @@ export default function SendungserfassungPage() {
   const email = usePortalEmail();
   const [form, setForm] = useState(empty);
   const [items, setItems] = useState<Sendung[]>([]);
+  const [kunden, setKunden] = useState<Kunde[]>([]);
+  const [adressen, setAdressen] = useState<Adresse[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     setItems(listSendungen());
+    const k = listKunden().filter((x) => x.active && x.kind === "CUSTOMER");
+    setKunden(k);
+    setForm((prev) => (prev.kundeId ? prev : { ...prev, kundeId: k[0]?.id || "" }));
   }, []);
+
+  useEffect(() => {
+    if (!form.kundeId) {
+      setAdressen([]);
+      return;
+    }
+    setAdressen(listAdressen(form.kundeId));
+  }, [form.kundeId]);
+
+  const pickupOptions = useMemo(
+    () => adressen.filter((a) => a.usage !== "DELIVERY"),
+    [adressen],
+  );
+  const deliveryOptions = useMemo(
+    () => adressen.filter((a) => a.usage !== "PICKUP"),
+    [adressen],
+  );
 
   function onChange(
     event: React.ChangeEvent<
@@ -42,6 +72,28 @@ export default function SendungserfassungPage() {
   ) {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function applyAbholung(id: string) {
+    const a = adressen.find((x) => x.id === id);
+    if (!a) return;
+    setForm((prev) => ({
+      ...prev,
+      abholAdresseId: id,
+      absender: a.company || a.label,
+      abholort: formatAddress(a),
+    }));
+  }
+
+  function applyZustellung(id: string) {
+    const a = adressen.find((x) => x.id === id);
+    if (!a) return;
+    setForm((prev) => ({
+      ...prev,
+      zustellAdresseId: id,
+      empfaenger: a.company || a.label,
+      zustellort: formatAddress(a),
+    }));
   }
 
   function onSubmit(event: FormEvent) {
@@ -60,20 +112,43 @@ export default function SendungserfassungPage() {
       createdBy: email || "unbekannt",
     });
     setItems(listSendungen());
-    setForm(empty);
+    setForm({ ...empty, kundeId: form.kundeId });
     setMessage(`Sendung ${saved.referenz} erfasst (${saved.id}).`);
   }
 
   return (
     <PortalShell
       title="Sendungserfassung"
-      subtitle="Neue Transporte für Spedition Sperger erfassen"
+      subtitle="Neue Transporte – Adressen aus dem Kunden-Adressbuch wählbar"
     >
       <div className={styles.layout}>
         <section className={styles.formCard}>
           <h2>Neue Sendung</h2>
           <form className={styles.form} onSubmit={onSubmit}>
             <div className={styles.grid2}>
+              <div className="field">
+                <label htmlFor="kundeId">Kunde</label>
+                <select
+                  id="kundeId"
+                  name="kundeId"
+                  value={form.kundeId}
+                  onChange={(e) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      kundeId: e.target.value,
+                      abholAdresseId: "",
+                      zustellAdresseId: "",
+                    }));
+                  }}
+                >
+                  {kunden.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.name}
+                      {k.customerNumber ? ` (${k.customerNumber})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="field">
                 <label htmlFor="referenz">Referenz *</label>
                 <input
@@ -85,15 +160,40 @@ export default function SendungserfassungPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className={styles.grid2}>
               <div className="field">
-                <label htmlFor="ladetermin">Ladetermin</label>
-                <input
-                  id="ladetermin"
-                  name="ladetermin"
-                  type="datetime-local"
-                  value={form.ladetermin}
-                  onChange={onChange}
-                />
+                <label htmlFor="abholAdresseId">Abholadresse aus Adressbuch</label>
+                <select
+                  id="abholAdresseId"
+                  value={form.abholAdresseId}
+                  onChange={(e) => applyAbholung(e.target.value)}
+                >
+                  <option value="">— manuell eingeben —</option>
+                  {pickupOptions.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.label || a.company} · {a.zip} {a.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="zustellAdresseId">
+                  Zustelladresse aus Adressbuch
+                </label>
+                <select
+                  id="zustellAdresseId"
+                  value={form.zustellAdresseId}
+                  onChange={(e) => applyZustellung(e.target.value)}
+                >
+                  <option value="">— manuell eingeben —</option>
+                  {deliveryOptions.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.label || a.company} · {a.zip} {a.city}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -126,7 +226,6 @@ export default function SendungserfassungPage() {
                   name="abholort"
                   value={form.abholort}
                   onChange={onChange}
-                  placeholder="z. B. Lustenau AT"
                   required
                 />
               </div>
@@ -137,7 +236,6 @@ export default function SendungserfassungPage() {
                   name="zustellort"
                   value={form.zustellort}
                   onChange={onChange}
-                  placeholder="z. B. St. Gallen CH"
                   required
                 />
               </div>
@@ -176,6 +274,34 @@ export default function SendungserfassungPage() {
               </div>
             </div>
 
+            <div className={styles.grid2}>
+              <div className="field">
+                <label htmlFor="ladetermin">Ladetermin</label>
+                <input
+                  id="ladetermin"
+                  name="ladetermin"
+                  type="datetime-local"
+                  value={form.ladetermin}
+                  onChange={onChange}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="status">Status</label>
+                <select
+                  id="status"
+                  name="status"
+                  value={form.status}
+                  onChange={onChange}
+                >
+                  <option>Erfasst</option>
+                  <option>Bereit zur Abholung</option>
+                  <option>Unterwegs</option>
+                  <option>In Zollabfertigung</option>
+                  <option>Zugestellt</option>
+                </select>
+              </div>
+            </div>
+
             <div className="field">
               <label htmlFor="warenbeschreibung">Warenbeschreibung</label>
               <textarea
@@ -185,22 +311,6 @@ export default function SendungserfassungPage() {
                 onChange={onChange}
                 rows={3}
               />
-            </div>
-
-            <div className="field">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                name="status"
-                value={form.status}
-                onChange={onChange}
-              >
-                <option>Erfasst</option>
-                <option>Bereit zur Abholung</option>
-                <option>Unterwegs</option>
-                <option>In Zollabfertigung</option>
-                <option>Zugestellt</option>
-              </select>
             </div>
 
             {error ? <p className={styles.err}>{error}</p> : null}
@@ -214,7 +324,7 @@ export default function SendungserfassungPage() {
                 className="btn btn-secondary"
                 type="button"
                 onClick={() => {
-                  setForm(empty);
+                  setForm({ ...empty, kundeId: form.kundeId });
                   setMessage("");
                   setError("");
                 }}
@@ -246,7 +356,12 @@ export default function SendungserfassungPage() {
                     <tr key={item.id}>
                       <td>
                         <strong>{item.referenz}</strong>
-                        <div style={{ color: "var(--sperger-muted)", fontSize: "0.82rem" }}>
+                        <div
+                          style={{
+                            color: "var(--sperger-muted)",
+                            fontSize: "0.82rem",
+                          }}
+                        >
                           {item.id}
                         </div>
                       </td>

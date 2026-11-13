@@ -52,6 +52,12 @@ export default function DashboardPage() {
         <Link className="btn btn-secondary" href="/zollerfassung">
           Zoll erfassen
         </Link>
+        <Link className="btn btn-secondary" href="/kunden">
+          Kunden
+        </Link>
+        <Link className="btn btn-secondary" href="/adressbuch">
+          Adressbuch
+        </Link>
         <Link className="btn btn-secondary" href="/track">
           Sendung verfolgen
         </Link>

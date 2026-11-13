@@ -4,14 +4,17 @@ import { FormEvent, useEffect, useState } from "react";
 import { PortalShell, usePortalEmail } from "../../components/PortalShell";
 import {
   formatWhen,
+  listKunden,
   listZollvorgaenge,
   saveZollvorgang,
+  type Kunde,
   type Zollvorgang,
 } from "../../lib/storage";
 import styles from "../erfassung.module.css";
 
 const empty = {
   sendungsreferenz: "",
+  kundeId: "",
   richtung: "AT_CH" as const,
   verfahren: "Export CH",
   warenart: "",
@@ -27,11 +30,15 @@ export default function ZollerfassungPage() {
   const email = usePortalEmail();
   const [form, setForm] = useState(empty);
   const [items, setItems] = useState<Zollvorgang[]>([]);
+  const [kunden, setKunden] = useState<Kunde[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     setItems(listZollvorgaenge());
+    const k = listKunden().filter((x) => x.active);
+    setKunden(k);
+    if (k[0]) setForm((prev) => ({ ...prev, kundeId: k[0].id }));
   }, []);
 
   function onChange(
@@ -60,7 +67,7 @@ export default function ZollerfassungPage() {
       createdBy: email || "unbekannt",
     });
     setItems(listZollvorgaenge());
-    setForm(empty);
+    setForm({ ...empty, kundeId: form.kundeId });
     setMessage(
       `Zollvorgang für ${saved.sendungsreferenz} erfasst (${saved.id}).`,
     );
@@ -77,6 +84,22 @@ export default function ZollerfassungPage() {
           <form className={styles.form} onSubmit={onSubmit}>
             <div className={styles.grid2}>
               <div className="field">
+                <label htmlFor="kundeId">Kunde</label>
+                <select
+                  id="kundeId"
+                  name="kundeId"
+                  value={form.kundeId}
+                  onChange={onChange}
+                >
+                  {kunden.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.name}
+                      {k.customerNumber ? ` (${k.customerNumber})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
                 <label htmlFor="sendungsreferenz">Sendungsreferenz *</label>
                 <input
                   id="sendungsreferenz"
@@ -87,6 +110,9 @@ export default function ZollerfassungPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className={styles.grid3}>
               <div className="field">
                 <label htmlFor="richtung">Richtung *</label>
                 <select
@@ -99,9 +125,6 @@ export default function ZollerfassungPage() {
                   <option value="CH_AT">CH → AT (Import)</option>
                 </select>
               </div>
-            </div>
-
-            <div className={styles.grid2}>
               <div className="field">
                 <label htmlFor="verfahren">Verfahren</label>
                 <select

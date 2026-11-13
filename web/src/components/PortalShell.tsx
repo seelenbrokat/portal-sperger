@@ -12,6 +12,10 @@ const NAV = [
   { href: "/dashboard", label: "Übersicht" },
   { href: "/sendungserfassung", label: "Sendungserfassung" },
   { href: "/zollerfassung", label: "Zollerfassung" },
+  { href: "/kunden", label: "Kunden" },
+  { href: "/adressbuch", label: "Adressbuch" },
+  { href: "/mandanten", label: "Mandanten" },
+  { href: "/partner", label: "Partner" },
   { href: "/track", label: "Sendung verfolgen" },
 ];
 
