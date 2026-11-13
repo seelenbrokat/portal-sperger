@@ -132,16 +132,26 @@ textarea {
   color: var(--sperger-slate-deep);
 }
 
-.field input {
+.field input,
+.field select,
+.field textarea {
   min-height: 2.75rem;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--sperger-line);
   border-radius: var(--radius);
   background: var(--white);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
 }
 
-.field input:focus {
+.field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
   outline: none;
   border-color: var(--sperger-blue-mid);
   box-shadow: 0 0 0 3px rgba(0, 81, 146, 0.14);
