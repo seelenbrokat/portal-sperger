@@ -45,7 +45,7 @@ class CreateCustomsDto {
   @IsString()
   grenzuebergang?: string;
 
-  /** Selbstfahrer: LKW/Grenze später (Beladung) – keine Dispo durch WOG */
+  /** Selbstfahrer: LKW/Grenze später (Beladung) – keine Dispo durch Sperger */
   @IsOptional()
   deferVehicle?: boolean | string;
 

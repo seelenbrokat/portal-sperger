@@ -75,7 +75,7 @@ export function buildArticleLabelPdf(
       margin: 0,
       info: {
         Title: `Lageretikett ${articleNo}`,
-        Author: 'WOG Lager',
+        Author: 'Sperger Lager',
       },
     });
     const chunks: Buffer[] = [];
@@ -102,7 +102,7 @@ export function buildArticleLabelPdf(
         .fillColor(SPERGER_PDF.greenDeep)
         .font('Helvetica-Bold')
         .fontSize(format === 'a6' ? 9 : 12)
-        .text('WOG · Lageretikett', left, y, { width: innerW, align: 'center' });
+        .text('SP · Lageretikett', left, y, { width: innerW, align: 'center' });
       y += format === 'a6' ? 18 : 28;
     }
 

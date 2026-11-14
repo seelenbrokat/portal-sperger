@@ -764,8 +764,8 @@ export class OrdersService {
         .fillColor(SPERGER_PDF.muted)
         .text(
           multi
-            ? `Dieses Dokument bestätigt die Übermittlung von ${orders.length} Aufträgen an WOG und dient als Ladeliste für die Abholung.`
-            : 'Dieses Dokument bestätigt die Übermittlung des Auftrags an WOG und dient als Ladeliste für die Abholung.',
+            ? `Dieses Dokument bestätigt die Übermittlung von ${orders.length} Aufträgen an Spedition Sperger und dient als Ladeliste für die Abholung.`
+            : 'Dieses Dokument bestätigt die Übermittlung des Auftrags an Spedition Sperger und dient als Ladeliste für die Abholung.',
           left + 10,
           boxY + 70,
           { width: contentW - 20 },

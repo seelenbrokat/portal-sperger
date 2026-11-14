@@ -75,7 +75,7 @@ export class LademittelscheinService {
 
   private assertStaff(user: AuthUser) {
     if (user.role !== UserRole.ORG_ADMIN && user.role !== UserRole.MANDANT_DISPATCHER) {
-      throw new ForbiddenException('Nur WOG-Personal');
+      throw new ForbiddenException('Nur Sperger-Personal');
     }
   }
 
@@ -482,7 +482,7 @@ export class LademittelscheinService {
     if (shouldMail && mailTo) {
       await this.notifications.sendRaw(
         mailTo,
-        `WOG Lademittel-Schein ${updated.number}`,
+        `SP Lademittel-Schein ${updated.number}`,
         [
           'Anbei der digitale Lademittel-Schein.',
           '',
@@ -616,7 +616,7 @@ export class LademittelscheinService {
       organizationId ||
       (
         await this.prisma.organization.findFirst({
-          where: { slug: 'wog' },
+          where: { slug: 'sperger' },
           select: { id: true },
         })
       )?.id;

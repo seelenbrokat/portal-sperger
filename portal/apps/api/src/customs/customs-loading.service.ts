@@ -24,7 +24,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { SoloplanService } from '../integrations/soloplan.service';
 import { drawA4BrandHeader, drawA4Footer, formatPdfDateTime, SPERGER_PDF } from '../common/pdf-brand';
 
-/** Platzhalter bis Selbstfahrer LKW/Grenze bei Beladung setzt (keine Dispo durch WOG). */
+/** Platzhalter bis Selbstfahrer LKW/Grenze bei Beladung setzt (keine Dispo durch Sperger). */
 export const CUSTOMS_VEHICLE_DEFERRED_PLATE = 'OFFEN';
 export const CUSTOMS_VEHICLE_DEFERRED_BORDER = 'OFFEN';
 
@@ -123,7 +123,7 @@ export class CustomsLoadingService {
 
   /**
    * Checkbox-Auswahl → LKW/Grenze setzen, Soloplan-Update, Ladeliste, Ankunftsaviso.
-   * Keine Dispo durch WOG: ERVO/Selbstfahrer.
+   * Keine Dispo durch Sperger: ERVO/Selbstfahrer.
    */
   async releaseTour(user: AuthUser, input: ReleaseCustomsLoadingInput) {
     const uniqueIds = [...new Set((input.orderIds || []).filter(Boolean))];

@@ -54,10 +54,13 @@ cp "$ROOT/portal/nginx/sperger.conf" /tmp/sperger-full-deploy/sperger.logistikbe
 
 echo "==> Sync nach $REMOTE_DIR"
 "${SSH[@]}" "mkdir -p '$REMOTE_DIR' '$REMOTE_DIR/data/uploads' '$REMOTE_DIR/data/sftp' '$REMOTE_DIR/data/integrations'"
+# Bestehende .env (JWT etc.) nicht überschreiben
+"${SSH[@]}" "test -f '$REMOTE_DIR/.env' && cp '$REMOTE_DIR/.env' /tmp/sperger-portal.env.bak || true"
 # stop old thin next container if present
 "${SSH[@]}" "docker rm -f sperger-portal-web 2>/dev/null || true"
 # upload via tar pipe
 tar -C /tmp/sperger-full-deploy -cf - . | "${SSH[@]}" "tar -C '$REMOTE_DIR' -xf -"
+"${SSH[@]}" "test -f /tmp/sperger-portal.env.bak && mv /tmp/sperger-portal.env.bak '$REMOTE_DIR/.env' || true"
 
 echo "==> Docker build & up (postgres/redis/api/worker/web)"
 "${SSH[@]}" "cd '$REMOTE_DIR' && docker compose build && docker compose up -d"

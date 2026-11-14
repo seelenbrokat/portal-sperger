@@ -804,7 +804,7 @@ export class ProformaWeService {
     const body = [
       `Hallo,`,
       ``,
-      `Zur Proforma-Rechnung ${parsed.proformaNumber || fileName} fehlen folgende Sendungen im WOG-Portal`,
+      `Zur Proforma-Rechnung ${parsed.proformaNumber || fileName} fehlen folgende Sendungen im Sperger-Portal`,
       `(externe Sendungsnummer = BK):`,
       ``,
       lines,

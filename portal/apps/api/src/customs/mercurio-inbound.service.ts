@@ -561,7 +561,7 @@ export class MercurioInboundService {
 
   private async resolveDefaultOrganizationId() {
     const org = await this.prisma.organization.findFirst({
-      where: { slug: 'wog' },
+      where: { slug: 'sperger' },
       select: { id: true },
     });
     return org?.id || null;

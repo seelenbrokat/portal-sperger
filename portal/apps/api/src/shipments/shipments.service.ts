@@ -28,7 +28,7 @@ function trackingNumber() {
   const y = d.getFullYear().toString().slice(-2);
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const rand = randomBytes(3).toString('hex').toUpperCase();
-  return `WOG${y}${m}${rand}`;
+  return `SP${y}${m}${rand}`;
 }
 
 type PositionInput = {
@@ -1038,7 +1038,7 @@ export class ShipmentsService {
       .join(' · ');
 
     const body = [
-      'Sendungsnachfrage aus dem WOG Kundenportal',
+      'Sendungsnachfrage aus dem Sperger Kundenportal',
       '',
       'Bitte um Information zum aktuellen Sendungsstatus und zur voraussichtlichen bzw. erfolgten Zustellung.',
       '',

@@ -30,7 +30,7 @@ function trackingNumber() {
   const y = d.getFullYear().toString().slice(-2);
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const rand = randomBytes(3).toString('hex').toUpperCase();
-  return `WOG${y}${m}${rand}`;
+  return `SP${y}${m}${rand}`;
 }
 
 @Injectable()
@@ -68,7 +68,7 @@ export class WareneingangService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { processed: 0, skipped: 0, failed: 0, linked: 0 };
 
     let processed = 0;
@@ -257,7 +257,7 @@ export class WareneingangService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { processed: 0, failed: 0, linked: 0 };
 
     let processed = 0;
@@ -895,7 +895,7 @@ export class WareneingangService {
       deliveryZip: shipment.deliveryZip,
       deliveryCity: shipment.deliveryCity,
       deliveryCountry: shipment.deliveryCountry,
-      mandantName: 'WOG',
+      mandantName: 'SP',
     };
     const labelColli = colli.map((c) => ({ ...c, totalColli: colli.length }));
 

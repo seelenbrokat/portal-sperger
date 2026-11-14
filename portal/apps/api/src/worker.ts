@@ -50,7 +50,7 @@ async function bootstrap() {
   const postAblieferbelege = app.get(PostAblieferbelegService);
 
   console.log(
-    'WOG Integration Worker started (Partner + Soloplan BP/Master/Tours/Telematics/Wareneingang/Intouch + Kunden-Dokumente + Partner-Orders/BORD512 + Partner-Status/STAT512 + eberle VIP + eZoll + Mercurio e-dec + Post-Ablieferbelege + portal@ WE-Mail + EZOLL Hub + ETB-Retention)',
+    'Sperger Integration Worker started (Partner + Soloplan BP/Master/Tours/Telematics/Wareneingang/Intouch + Kunden-Dokumente + Partner-Orders/BORD512 + Partner-Status/STAT512 + eberle VIP + eZoll + Mercurio e-dec + Post-Ablieferbelege + portal@ WE-Mail + EZOLL Hub + ETB-Retention)',
   );
 
   let lastEtbPurgeAt = 0;

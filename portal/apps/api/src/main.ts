@@ -53,7 +53,7 @@ async function bootstrap() {
 
   const port = Number(process.env.API_PORT || 3001);
   await app.listen(port);
-  console.log(`WOG API listening on :${port}`);
+  console.log(`Sperger API listening on :${port}`);
 }
 
 bootstrap();

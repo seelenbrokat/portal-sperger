@@ -37,22 +37,30 @@ export class ApiError extends Error {
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('wog_token');
+  return (
+    localStorage.getItem('sperger_token') ||
+    localStorage.getItem('wog_token') /* Migration */
+  );
 }
 
 export function setSession(token: string, user: SessionUser) {
-  localStorage.setItem('wog_token', token);
-  localStorage.setItem('wog_user', JSON.stringify(user));
+  localStorage.setItem('sperger_token', token);
+  localStorage.setItem('sperger_user', JSON.stringify(user));
+  localStorage.removeItem('wog_token');
+  localStorage.removeItem('wog_user');
 }
 
 export function clearSession() {
+  localStorage.removeItem('sperger_token');
+  localStorage.removeItem('sperger_user');
   localStorage.removeItem('wog_token');
   localStorage.removeItem('wog_user');
 }
 
 export function getUser(): SessionUser | null {
   if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem('wog_user');
+  const raw =
+    localStorage.getItem('sperger_user') || localStorage.getItem('wog_user');
   return raw ? (JSON.parse(raw) as SessionUser) : null;
 }
 

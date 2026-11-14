@@ -21,7 +21,7 @@ export class PartnersService {
   }
 
   async create(user: AuthUser, data: { name: string; code: string; sftpUsername?: string }) {
-    const apiKey = `wog_${randomBytes(24).toString('hex')}`;
+    const apiKey = `sp_${randomBytes(24).toString('hex')}`;
     const partner = await this.prisma.partner.create({
       data: {
         organizationId: user.organizationId,

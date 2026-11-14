@@ -376,7 +376,7 @@ export class EzollSmartborderService {
       `Ihr SmartBorder-Fahrerlink zum Verzollungsauftrag ${order.externalNumber || ''}.\n\n` +
       `Kennzeichen: ${plate}\n` +
       `Link: ${url}\n\n` +
-      `Bitte im Browser oder in der WOG Companion App öffnen.\n`;
+      `Bitte im Browser oder in der Sperger Companion App öffnen.\n`;
 
     const recipients = new Set<string>();
     if (order.smartborderNotifyEmail) {

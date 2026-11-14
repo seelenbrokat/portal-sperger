@@ -173,7 +173,7 @@ export class EzollFreightPayerService {
     }
 
     const d = new Date();
-    const track = `WOG${String(d.getFullYear()).slice(-2)}${String(d.getMonth() + 1).padStart(2, '0')}${randomBytes(3).toString('hex').toUpperCase()}`;
+    const track = `SP${String(d.getFullYear()).slice(-2)}${String(d.getMonth() + 1).padStart(2, '0')}${randomBytes(3).toString('hex').toUpperCase()}`;
 
     const shipment = await this.prisma.shipment.create({
       data: {

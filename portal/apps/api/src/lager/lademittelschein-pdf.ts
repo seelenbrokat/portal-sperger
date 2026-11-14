@@ -140,8 +140,8 @@ export async function writeLademittelscheinPdf(
     .fontSize(8)
     .font('Helvetica-Bold')
     .text('Lademittel', left + 6, y + 7, { width: colW - 8 })
-    .text('WOG übergibt Ihnen', left + colW + 6, y + 7, { width: colW - 8 })
-    .text('WOG übernimmt von Ihnen', left + colW * 2 + 6, y + 7, { width: colW - 8 });
+    .text('Sperger übergibt Ihnen', left + colW + 6, y + 7, { width: colW - 8 })
+    .text('Sperger übernimmt von Ihnen', left + colW * 2 + 6, y + 7, { width: colW - 8 });
   y += rowH;
 
   for (const [label, out, inn] of rows) {
@@ -234,7 +234,7 @@ export async function writeLademittelscheinPdf(
     .fillColor(SPERGER_PDF.muted)
     .fontSize(7)
     .font('Helvetica')
-    .text(`WOG Lademittel-Schein · ${data.number}`, left, doc.page.height - 36, {
+    .text(`SP Lademittel-Schein · ${data.number}`, left, doc.page.height - 36, {
       width: right - left,
       align: 'center',
     });

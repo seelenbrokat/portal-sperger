@@ -34,7 +34,7 @@ export class TourService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { processed: 0, imported: 0, deleted: 0 };
 
     let processed = 0;

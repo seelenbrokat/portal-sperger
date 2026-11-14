@@ -58,7 +58,7 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email.toLowerCase() } });
     if (existing) throw new BadRequestException('E-Mail bereits registriert');
 
-    const org = await this.prisma.organization.findFirst({ where: { slug: 'wog' } });
+    const org = await this.prisma.organization.findFirst({ where: { slug: 'sperger' } });
     if (!org) throw new BadRequestException('Organisation nicht initialisiert');
 
     if (!dto.customerNumber) {

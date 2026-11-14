@@ -425,7 +425,7 @@ export class PostAblieferbelegService {
 
     if (/^\d{5,7}\.\d{1,3}$/.test(head)) {
       out.shipmentNumber = head;
-    } else if (/^WOG/i.test(head)) {
+    } else if (/^(SP|WOG)/i.test(head)) {
       out.trackingNumber = head;
     } else if (/^\d{5,7}$/.test(head)) {
       out.orderNumber = head;
@@ -450,7 +450,7 @@ export class PostAblieferbelegService {
   }
 
   private async resolveOrganizationId() {
-    const slug = String(this.config.get('POST_ABLIEFERBELEG_ORG_SLUG') || 'wog').trim();
+    const slug = String(this.config.get('POST_ABLIEFERBELEG_ORG_SLUG') || 'sperger').trim();
     const org = await this.prisma.organization.findFirst({
       where: { slug },
       select: { id: true },

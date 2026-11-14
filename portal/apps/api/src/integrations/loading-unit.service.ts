@@ -697,7 +697,7 @@ export class LoadingUnitService {
           given,
           taken,
           balance,
-          /** Anzahl schuldender Lademittel (Partner → WOG) */
+          /** Anzahl schuldender Lademittel (Partner → Sperger) */
           owedQuantity: owedQuantity > 0 ? owedQuantity : Math.max(0, balance),
           postings: r._count._all,
           lastAt: r._max.occurredAt,
@@ -1409,7 +1409,10 @@ function isInternalPartnerName(name?: string | null): boolean {
   if (!n) return false;
   if (n.startsWith('tour ') || n.includes(' · stop ')) return false;
   return (
+    n === 'sperger' ||
+    n === 'sp' ||
     n === 'wog' ||
+    n.startsWith('sperger ') ||
     n.startsWith('wog ') ||
     n.startsWith('wog-') ||
     n.includes('wog logistics') ||

@@ -593,7 +593,7 @@ export class EberleVipService {
 
   private async findEberleVehicles(): Promise<EberleVehicleRow[]> {
     const org =
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } })) ||
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } })) ||
       (await this.prisma.organization.findFirst());
     if (!org) return [];
 

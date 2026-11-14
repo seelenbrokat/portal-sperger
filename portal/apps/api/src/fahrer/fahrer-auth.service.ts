@@ -34,7 +34,7 @@ export class FahrerAuthService {
   ) {}
 
   private async resolveOrg(tenant?: string) {
-    const slug = (tenant || 'wog').toLowerCase();
+    const slug = (tenant || 'sperger').toLowerCase();
     const org = await this.prisma.organization.findFirst({
       where: { slug, active: true },
     });

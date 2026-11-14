@@ -6,7 +6,7 @@ import {
 } from '../src/customs/customs-loading.service';
 
 describe('customs Selbstfahrer Beladung', () => {
-  it('deferred Platzhalter sind gesetzt (keine Dispo durch WOG)', () => {
+  it('deferred Platzhalter sind gesetzt (keine Dispo durch Sperger)', () => {
     assert.equal(CUSTOMS_VEHICLE_DEFERRED_PLATE, 'OFFEN');
     assert.equal(CUSTOMS_VEHICLE_DEFERRED_BORDER, 'OFFEN');
   });

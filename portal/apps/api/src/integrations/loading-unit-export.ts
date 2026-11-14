@@ -112,7 +112,7 @@ export function luReportToOverviewCsv(report: LuExportReport): string {
   const lines: string[] = [];
   lines.push(
     csvRow([
-      'WOG Lademittelverwaltung – Übersicht Partner-Totale',
+      'Sperger Lademittelverwaltung – Übersicht Partner-Totale',
       formatPdfDateTime(report.generatedAt),
     ]),
   );
@@ -186,7 +186,7 @@ export function luReportToMatrixCsv(report: LuExportReport): string {
   const lines: string[] = [];
   lines.push(
     csvRow([
-      'WOG Lademittelverwaltung – Übersicht Matrix (Offen je Typ)',
+      'Sperger Lademittelverwaltung – Übersicht Matrix (Offen je Typ)',
       formatPdfDateTime(report.generatedAt),
     ]),
   );
@@ -229,7 +229,7 @@ export function luReportToPartnerCsv(report: LuExportReport, partnerName: string
   const lines: string[] = [];
   lines.push(
     csvRow([
-      `WOG Lademittelverwaltung – Partner ${partnerName}`,
+      `Sperger Lademittelverwaltung – Partner ${partnerName}`,
       formatPdfDateTime(report.generatedAt),
     ]),
   );

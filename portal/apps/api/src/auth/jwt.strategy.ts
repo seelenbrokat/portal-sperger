@@ -61,7 +61,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         typ: 'driver',
         id: driver.id,
         organizationId: payload.organizationId || driver.organizationId,
-        tenant: payload.tenant || 'wog',
+        tenant: payload.tenant || 'sperger',
         driverId: driver.id,
         driverTelematicsId: driver.telematicsId,
         vehicleId: vehicle.id,

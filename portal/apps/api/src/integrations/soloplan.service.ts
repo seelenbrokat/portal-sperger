@@ -1618,8 +1618,8 @@ export class PartnerImportService {
   }
 
   private async ensureUnknownPartner() {
-    const org = await this.prisma.organization.findFirst({ where: { slug: 'wog' } });
-    if (!org) throw new Error('WOG org missing');
+    const org = await this.prisma.organization.findFirst({ where: { slug: 'sperger' } });
+    if (!org) throw new Error('Sperger org missing');
     const existing = await this.prisma.partner.findFirst({
       where: { organizationId: org.id, code: 'UNKNOWN' },
     });

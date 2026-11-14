@@ -210,7 +210,7 @@ export class AddressValidationService {
       const res = await fetch(url, {
         headers: {
           Accept: 'application/json',
-          'User-Agent': 'WOG-Portal/1.0 (https://sperger.logistikberater.at; address-check)',
+          'User-Agent': 'Sperger-Portal/1.0 (https://sperger.logistikberater.at; address-check)',
         },
       });
       if (!res.ok) {

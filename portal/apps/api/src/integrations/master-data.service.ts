@@ -104,7 +104,7 @@ export class MasterDataService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { processed: 0, packaging: 0, documentCategories: 0 };
 
     let processed = 0;

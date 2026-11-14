@@ -121,7 +121,7 @@ export function drawLabelBrandHeader(
         .fillColor(SPERGER_PDF.greenDeep)
         .fontSize(10)
         .font('Helvetica-Bold')
-        .text('WOG', left, top + 6);
+        .text('SP', left, top + 6);
     }
 
     doc

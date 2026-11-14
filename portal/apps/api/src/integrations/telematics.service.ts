@@ -79,7 +79,7 @@ export class TelematicsService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) {
       return {
         processed: 0,
@@ -204,7 +204,7 @@ export class TelematicsService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { processed: 0, failed: 0, skipped: 0 };
 
     let processed = 0;
@@ -693,7 +693,7 @@ export class TelematicsService {
       (organizationId
         ? await this.prisma.organization.findUnique({ where: { id: organizationId } })
         : null) ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }));
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }));
     if (!org) return { linked: 0, toursUpdated: 0 };
 
     const orphans = await this.prisma.telematicsEvent.findMany({

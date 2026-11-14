@@ -205,7 +205,7 @@ export class ExchangeHubService {
   async processInboundQueues(organizationId?: string) {
     const org =
       organizationId ||
-      (await this.prisma.organization.findFirst({ where: { slug: 'wog' } }))?.id;
+      (await this.prisma.organization.findFirst({ where: { slug: 'sperger' } }))?.id;
     if (!org) return { processed: 0 };
 
     const inbound: { from: IntegrationSystem; items: CustomsExchangePayload[] }[] = [
