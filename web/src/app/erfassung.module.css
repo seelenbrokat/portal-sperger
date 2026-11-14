@@ -1,0 +1,108 @@
+.layout {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.formCard,
+.listCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--sperger-line);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  animation: rise-in 0.45s ease both;
+}
+
+.formCard h2,
+.listCard h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sperger-blue-deep);
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.ok {
+  margin: 0;
+  color: var(--ok);
+  font-weight: 650;
+}
+
+.err {
+  margin: 0;
+  color: var(--danger);
+  font-weight: 650;
+}
+
+.tableWrap {
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.7rem 0.4rem;
+  border-bottom: 1px solid var(--sperger-line);
+  font-size: 0.94rem;
+  vertical-align: top;
+}
+
+.table th {
+  color: var(--sperger-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.empty {
+  margin: 0;
+  color: var(--sperger-muted);
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--sperger-blue-soft);
+  color: var(--sperger-blue-deep);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .grid2,
+  .grid3 {
+    grid-template-columns: 1fr;
+  }
+}
