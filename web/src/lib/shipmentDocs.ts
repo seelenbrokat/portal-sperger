@@ -14,6 +14,18 @@ function stamp(): string {
   return new Date().toISOString().slice(0, 10).replace(/-/g, "");
 }
 
+/** jsPDF Helvetica: Sonderzeichen ersetzen, die WinAnsi nicht kann. */
+function pdfSafe(text: string): string {
+  return String(text || "")
+    .replace(/[—–]/g, "-")
+    .replace(/[·•]/g, "-")
+    .replace(/[„“”«»]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/→/g, "->")
+    .replace(/←/g, "<-")
+    .replace(/\u00A0/g, " ");
+}
+
 function barcodeDataUrl(value: string): string {
   const canvas = document.createElement("canvas");
   JsBarcode(canvas, value, {
@@ -28,14 +40,30 @@ function barcodeDataUrl(value: string): string {
   return canvas.toDataURL("image/png");
 }
 
-function openPdf(dataUrl: string) {
-  const win = window.open(dataUrl, "_blank");
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("PDF konnte nicht gelesen werden."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+/** Öffnet PDF zuverlässig per Blob-URL (data:-URLs werden von Chrome oft blockiert). */
+function openPdfBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, "_blank", "noopener,noreferrer");
   if (!win) {
     const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = "dokument.pdf";
+    a.href = url;
+    a.download = fileName;
+    a.rel = "noopener";
+    document.body.appendChild(a);
     a.click();
+    a.remove();
   }
+  // Blob-URL erst später freigeben, damit der Tab laden kann
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 /** Erzeugt Etiketten-PDF (100×150 mm je Collo), speichert als Dokument an der Sendung. */
@@ -64,12 +92,12 @@ export async function createLabelsPdf(
 
     pdf.setTextColor(28, 36, 44);
     pdf.setFontSize(12);
-    pdf.text(sendung.referenz, 5, 20);
+    pdf.text(pdfSafe(sendung.referenz), 5, 20);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8);
-    if (kunde) pdf.text(`Kunde: ${kunde.name}`, 5, 25);
+    if (kunde) pdf.text(pdfSafe(`Kunde: ${kunde.name}`), 5, 25);
     if (sendung.warenbeschreibung) {
-      pdf.text(sendung.warenbeschreibung.slice(0, 60), 5, 30);
+      pdf.text(pdfSafe(sendung.warenbeschreibung.slice(0, 60)), 5, 30);
     }
 
     pdf.setFillColor(230, 240, 248);
@@ -82,8 +110,8 @@ export async function createLabelsPdf(
       sendung.lademeter ? `${sendung.lademeter} m` : null,
     ]
       .filter(Boolean)
-      .join(" · ");
-    if (weightLine) pdf.text(weightLine, 55, 42);
+      .join(" / ");
+    if (weightLine) pdf.text(pdfSafe(weightLine), 55, 42);
 
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(7);
@@ -93,7 +121,7 @@ export async function createLabelsPdf(
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
     const abs = pdf.splitTextToSize(
-      `${sendung.absender || "—"}\n${sendung.abholort}`,
+      pdfSafe(`${sendung.absender || "-"}\n${sendung.abholort}`),
       90,
     );
     pdf.text(abs, 5, 59);
@@ -101,12 +129,12 @@ export async function createLabelsPdf(
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(7);
     pdf.setTextColor(90, 102, 112);
-    pdf.text("EMPFÄNGER / ZUSTELLUNG", 5, 78);
+    pdf.text("EMPFAENGER / ZUSTELLUNG", 5, 78);
     pdf.setTextColor(28, 36, 44);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(9);
     const emp = pdf.splitTextToSize(
-      `${sendung.empfaenger || "—"}\n${sendung.zustellort}`,
+      pdfSafe(`${sendung.empfaenger || "-"}\n${sendung.zustellort}`),
       90,
     );
     pdf.text(emp, 5, 83);
@@ -122,7 +150,8 @@ export async function createLabelsPdf(
     pdf.text(`(00) ${sscc}`, 50, 138, { align: "center" });
   }
 
-  const dataUrl = pdf.output("datauristring");
+  const blob = pdf.output("blob");
+  const dataUrl = await blobToDataUrl(blob);
   const fileName = `Etiketten-${sendung.referenz}-${stamp()}.pdf`;
   const doc = saveDokument({
     sendungId: sendung.id,
@@ -130,12 +159,12 @@ export async function createLabelsPdf(
     type: "LABEL",
     fileName,
     mimeType: "application/pdf",
-    sizeBytes: Math.round((dataUrl.length * 3) / 4),
+    sizeBytes: blob.size,
     dataUrl,
     note: `${total} Etikett(en) erstellt`,
     createdBy,
   });
-  openPdf(dataUrl);
+  openPdfBlob(blob, fileName);
   return doc;
 }
 
@@ -156,13 +185,15 @@ export async function createLoadingListPdf(
 
   pdf.setTextColor(0, 58, 107);
   pdf.setFontSize(16);
-  pdf.text("Auftragsbestätigung / Ladeliste", 14, 30);
+  pdf.text(pdfSafe("Auftragsbestaetigung / Ladeliste"), 14, 30);
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   pdf.setTextColor(90, 102, 112);
   pdf.text(
-    "Bestätigt die Erfassung und dient als Ladeliste für die Abholung.",
+    pdfSafe(
+      "Bestaetigt die Erfassung und dient als Ladeliste fuer die Abholung.",
+    ),
     14,
     36,
   );
@@ -170,14 +201,14 @@ export async function createLoadingListPdf(
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(14);
   pdf.setTextColor(28, 36, 44);
-  pdf.text(sendung.referenz, 196, 30, { align: "right" });
+  pdf.text(pdfSafe(sendung.referenz), 196, 30, { align: "right" });
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   pdf.setTextColor(90, 102, 112);
-  pdf.text(`Erfasst ${formatWhen(sendung.createdAt)}`, 196, 36, {
+  pdf.text(pdfSafe(`Erfasst ${formatWhen(sendung.createdAt)}`), 196, 36, {
     align: "right",
   });
-  pdf.text(`Status: ${sendung.status}`, 196, 41, { align: "right" });
+  pdf.text(pdfSafe(`Status: ${sendung.status}`), 196, 41, { align: "right" });
 
   const box = (
     x: number,
@@ -193,11 +224,11 @@ export async function createLoadingListPdf(
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(7);
     pdf.setTextColor(90, 102, 112);
-    pdf.text(title.toUpperCase(), x + 3, y + 5);
+    pdf.text(pdfSafe(title).toUpperCase(), x + 3, y + 5);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
     pdf.setTextColor(28, 36, 44);
-    const lines = pdf.splitTextToSize(body, w - 6);
+    const lines = pdf.splitTextToSize(pdfSafe(body), w - 6);
     pdf.text(lines, x + 3, y + 11);
   };
 
@@ -207,7 +238,7 @@ export async function createLoadingListPdf(
     88,
     28,
     "Kunde / Auftraggeber",
-    `${kunde?.name || "—"}${kunde?.customerNumber ? `\nNr. ${kunde.customerNumber}` : ""}`,
+    `${kunde?.name || "-"}${kunde?.customerNumber ? `\nNr. ${kunde.customerNumber}` : ""}`,
   );
   box(
     108,
@@ -225,7 +256,7 @@ export async function createLoadingListPdf(
     88,
     32,
     "Abholung",
-    `${sendung.absender || "—"}\n${sendung.abholort}`,
+    `${sendung.absender || "-"}\n${sendung.abholort}`,
   );
   box(
     108,
@@ -233,7 +264,7 @@ export async function createLoadingListPdf(
     88,
     32,
     "Zustellung",
-    `${sendung.empfaenger || "—"}\n${sendung.zustellort}`,
+    `${sendung.empfaenger || "-"}\n${sendung.zustellort}`,
   );
 
   pdf.setFont("helvetica", "bold");
@@ -250,25 +281,32 @@ export async function createLoadingListPdf(
   pdf.setTextColor(28, 36, 44);
   pdf.text("1", cols[0], 134);
   pdf.text(
-    pdf.splitTextToSize(sendung.warenbeschreibung || "—", 88),
+    pdf.splitTextToSize(pdfSafe(sendung.warenbeschreibung || "-"), 88),
     cols[1],
     134,
   );
-  pdf.text(sendung.colli || "—", cols[2], 134);
-  pdf.text(sendung.gewichtKg ? `${sendung.gewichtKg} kg` : "—", cols[3], 134);
-  pdf.text(sendung.lademeter || "—", cols[4], 134);
+  pdf.text(pdfSafe(sendung.colli || "-"), cols[2], 134);
+  pdf.text(
+    pdfSafe(sendung.gewichtKg ? `${sendung.gewichtKg} kg` : "-"),
+    cols[3],
+    134,
+  );
+  pdf.text(pdfSafe(sendung.lademeter || "-"), cols[4], 134);
 
   pdf.setFontSize(8);
   pdf.setTextColor(90, 102, 112);
   pdf.text(
-    "Dieses Dokument bestätigt die Übermittlung des Auftrags an Spedition Sperger und dient als Ladeliste für die Abholung.",
+    pdfSafe(
+      "Dieses Dokument bestaetigt die Uebermittlung des Auftrags an Spedition Sperger und dient als Ladeliste fuer die Abholung.",
+    ),
     14,
     270,
     { maxWidth: 182 },
   );
-  pdf.text("zoll@spedition-sperger.at · spedition-sperger.at", 14, 278);
+  pdf.text("zoll@spedition-sperger.at · spedition-sperger.at".replace("·", "|"), 14, 278);
 
-  const dataUrl = pdf.output("datauristring");
+  const blob = pdf.output("blob");
+  const dataUrl = await blobToDataUrl(blob);
   const fileName = `Ladeliste-${sendung.referenz}-${stamp()}.pdf`;
   const doc = saveDokument({
     sendungId: sendung.id,
@@ -276,11 +314,28 @@ export async function createLoadingListPdf(
     type: "LOADING_LIST",
     fileName,
     mimeType: "application/pdf",
-    sizeBytes: Math.round((dataUrl.length * 3) / 4),
+    sizeBytes: blob.size,
     dataUrl,
-    note: "Ladeliste / Auftragsbestätigung erstellt",
+    note: "Ladeliste / Auftragsbestaetigung erstellt",
     createdBy,
   });
-  openPdf(dataUrl);
+  openPdfBlob(blob, fileName);
   return doc;
+}
+
+/** Öffnet ein gespeichertes Dokument (Blob statt data:-Navigation). */
+export function openStoredDocument(doc: Dokument) {
+  if (!doc.dataUrl) {
+    throw new Error("Dokument hat keinen Inhalt.");
+  }
+  const parts = doc.dataUrl.split(",");
+  const meta = parts[0] || "";
+  const b64 = parts[1] || "";
+  const mimeMatch = /data:([^;]+)/.exec(meta);
+  const mime = mimeMatch?.[1] || doc.mimeType || "application/pdf";
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const blob = new Blob([bytes], { type: mime });
+  openPdfBlob(blob, doc.fileName);
 }

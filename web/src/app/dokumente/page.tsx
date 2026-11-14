@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PortalShell } from "../../components/PortalShell";
+import { openStoredDocument } from "../../lib/shipmentDocs";
 import {
   DOC_TYPE_LABELS,
   formatWhen,
@@ -122,23 +123,14 @@ export default function DokumentePage() {
                         >
                           Sendung
                         </Link>
-                        {d.type === "LABEL" ? (
-                          <Link
-                            className="btn btn-secondary"
-                            href={`/sendungen/${d.sendungId}/etiketten`}
-                            target="_blank"
+                        {d.dataUrl ? (
+                          <button
+                            className="btn btn-primary"
+                            type="button"
+                            onClick={() => openStoredDocument(d)}
                           >
-                            Etiketten
-                          </Link>
-                        ) : null}
-                        {d.type === "LOADING_LIST" ? (
-                          <Link
-                            className="btn btn-secondary"
-                            href={`/sendungen/${d.sendungId}/ladeliste`}
-                            target="_blank"
-                          >
-                            Ladeliste
-                          </Link>
+                            Öffnen
+                          </button>
                         ) : null}
                         {d.dataUrl ? (
                           <a

@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { PortalShell, usePortalEmail } from "../../../components/PortalShell";
-import { createLabelsPdf, createLoadingListPdf } from "../../../lib/shipmentDocs";
+import {
+  createLabelsPdf,
+  createLoadingListPdf,
+  openStoredDocument,
+} from "../../../lib/shipmentDocs";
 import {
   DOC_TYPE_LABELS,
   deleteDokument,
@@ -322,14 +326,23 @@ export default function SendungDetailPage() {
                       <td>
                         <div className={styles.actions}>
                           {d.dataUrl ? (
-                            <a
+                            <button
                               className="btn btn-primary"
-                              href={d.dataUrl}
-                              target="_blank"
-                              rel="noreferrer"
+                              type="button"
+                              onClick={() => {
+                                try {
+                                  openStoredDocument(d);
+                                } catch (err) {
+                                  setError(
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Öffnen fehlgeschlagen",
+                                  );
+                                }
+                              }}
                             >
                               Öffnen / Drucken
-                            </a>
+                            </button>
                           ) : null}
                           {d.dataUrl ? (
                             <a
