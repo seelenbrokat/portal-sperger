@@ -260,7 +260,7 @@ export default function TourDetailPage() {
           </div>
           <div>
             <div className="muted">Live-ETA Zustellung</div>
-            <strong style={{ color: tour.etaAt ? 'var(--sperger-blue, #1a6b3c)' : undefined }}>
+            <strong style={{ color: tour.etaAt ? 'var(--sperger-blue, #005192)' : undefined }}>
               {fmt(tour.etaAt)}
             </strong>
             {tour.etaText ? (

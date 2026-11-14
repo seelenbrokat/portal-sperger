@@ -5,6 +5,7 @@
   --sperger-blue-mid: #1a6aad;
   --sperger-blue-soft: #e6f0f8;
   --sperger-blue-mist: #f2f7fb;
+  --soft: var(--sperger-blue-mist);
   --sperger-slate: #5a6670;
   --sperger-slate-soft: #d5dde4;
   --sperger-slate-mist: #eef2f5;
@@ -83,7 +84,7 @@ code {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(155deg, #124a29 0%, #1a6b3c 48%, #3d7a96 100%);
+    linear-gradient(155deg, #003a6b 0%, #005192 46%, #3d464e 100%);
   color: var(--white);
 }
 
@@ -273,7 +274,7 @@ code {
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: none;
   border-color: var(--sperger-blue);
-  box-shadow: 0 0 0 3px rgba(26, 107, 60, 0.12);
+  box-shadow: 0 0 0 3px rgba(0, 81, 146, 0.12);
 }
 
 .btn {
@@ -323,13 +324,14 @@ code {
 }
 
 .sidebar {
-  background: linear-gradient(180deg, #134528 0%, #0f3520 100%);
+  background: linear-gradient(180deg, var(--sperger-blue-deep) 0%, #06263f 72%, var(--sperger-slate) 140%);
   color: white;
   padding: 1.25rem 0.9rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-y: auto;
 }
 
 .sidebar .logo {
@@ -381,10 +383,19 @@ code {
   color: white;
 }
 .sidebar nav a.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   color: white;
   font-weight: 600;
-  box-shadow: inset 2px 0 0 #9fc8e0;
+  box-shadow: inset 3px 0 0 #7eb6e0;
+}
+.sidebar .nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  margin-bottom: 0.85rem;
+}
+.sidebar .nav-section:last-child {
+  margin-bottom: 0;
 }
 .sidebar .nav-block { display: flex; flex-direction: column; gap: 0.1rem; }
 .sidebar .nav-children {
@@ -443,7 +454,7 @@ code {
   border-radius: 10px;
   background: color-mix(in srgb, var(--sperger-blue) 14%, white);
   border: 1px solid color-mix(in srgb, var(--sperger-blue) 35%, transparent);
-  color: var(--sperger-blue-deep, #1f4d2e);
+  color: var(--sperger-blue-deep);
   font-size: 0.92rem;
 }
 
@@ -632,7 +643,7 @@ code {
   position: sticky;
   right: 0;
   background: var(--bg-panel);
-  box-shadow: -6px 0 10px -8px rgba(18, 74, 41, 0.18);
+  box-shadow: -6px 0 10px -8px rgba(0, 58, 107, 0.18);
   overflow: visible;
 }
 .table-customs thead .col-side {
@@ -732,7 +743,7 @@ code {
   position: sticky;
   right: 0;
   background: var(--bg-panel);
-  box-shadow: -6px 0 10px -8px rgba(18, 74, 41, 0.18);
+  box-shadow: -6px 0 10px -8px rgba(0, 58, 107, 0.18);
   overflow: visible;
 }
 .table-shipments.is-customer .col-ref { width: 26%; }
@@ -1075,7 +1086,7 @@ code {
 .track-page { min-height: 100vh; }
 
 .track-hero {
-  background: linear-gradient(155deg, #124a29 0%, #1a6b3c 55%, #3d7a96 100%);
+  background: linear-gradient(155deg, #003a6b 0%, #005192 55%, #5a6670 100%);
   color: white;
   padding: 2.25rem 1.25rem 3.25rem;
 }
@@ -1236,11 +1247,11 @@ code {
   border-radius: 50%;
   background: var(--sperger-blue);
   border: 2px solid #fff;
-  box-shadow: 0 1px 4px rgba(18, 74, 41, 0.35);
+  box-shadow: 0 1px 4px rgba(0, 58, 107, 0.35);
 }
 .fleet-marker-dot--mtrack {
   background: #2f6b4f;
-  box-shadow: 0 1px 4px rgba(18, 74, 41, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 58, 107, 0.3);
 }
 .fleet-marker-dot--idle {
   background: #0b6e99;
@@ -1252,7 +1263,7 @@ code {
   padding: 0.12rem 0.4rem;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(18, 74, 41, 0.18);
+  border: 1px solid rgba(0, 58, 107, 0.18);
   color: #123a22;
   font-size: 11px;
   font-weight: 650;

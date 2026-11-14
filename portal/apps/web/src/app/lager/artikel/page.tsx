@@ -358,7 +358,7 @@ export default function LagerArtikelPage() {
                 key={a.id}
                 style={{
                   opacity: a.active ? 1 : 0.55,
-                  outline: editingId === a.id ? '2px solid var(--accent, #1a6b3c)' : undefined,
+                  outline: editingId === a.id ? '2px solid var(--accent, #005192)' : undefined,
                 }}
               >
                 <td>{a.customer.name}</td>

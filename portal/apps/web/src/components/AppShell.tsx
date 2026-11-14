@@ -18,8 +18,12 @@ type NavItem = {
   label: string;
   roles: string[];
   children?: Array<{ href: string; label: string }>;
-  /** Kundenportal: nur bei Lagerkunde anzeigen */
   requireWarehouseCustomer?: boolean;
+};
+
+type NavSection = {
+  label: string;
+  items: NavItem[];
 };
 
 type ImpersonationCustomer = {
@@ -29,59 +33,105 @@ type ImpersonationCustomer = {
   matchcode: string | null;
 };
 
-const NAV: NavItem[] = [
-  { href: '/dashboard', label: 'Übersicht', roles: ['*'] },
-  { href: '/shipments', label: 'Sendungen', roles: ['*'] },
-  { href: '/shipments/new', label: 'Neuer Auftrag', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'] },
-  { href: '/tours/dashboard', label: 'Dispo-Dashboard', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/tours', label: 'Touren & Fahrzeuge', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/partner/tours', label: 'Meine Touren', roles: ['PARTNER'] },
-  { href: '/partner/lademittelscheine', label: 'Lademittelverwaltung', roles: ['PARTNER'] },
-  { href: '/fahrer', label: 'Fahrer / Zustell-App', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/tours/lademittel', label: 'Lademittel', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+/** Kompakte, gruppierte Navigation – leichter zu scannen als flache WOG-Liste. */
+const NAV_SECTIONS: NavSection[] = [
   {
-    href: '/lager',
-    label: 'Lager',
-    roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'],
-    children: [
-      { href: '/lager/uebersicht', label: 'Übersicht' },
-      { href: '/lager/artikel', label: 'Artikel' },
-      { href: '/lager/einlagern', label: 'Einlagern' },
-      { href: '/lager/bestand', label: 'Bestand' },
-      { href: '/lager/plaetze', label: 'Plätze' },
-      { href: '/lager/preise', label: 'Preise' },
-      { href: '/lager/abrechnung', label: 'Abrechnung' },
-      { href: '/lager/lademittelscheine', label: 'Lademittelscheine' },
-      { href: '/lager/login-qr', label: 'Login-QR' },
+    label: 'Aufträge',
+    items: [
+      { href: '/dashboard', label: 'Übersicht', roles: ['*'] },
+      { href: '/shipments', label: 'Sendungen', roles: ['*'] },
+      {
+        href: '/shipments/new',
+        label: 'Neuer Auftrag',
+        roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'],
+      },
+      {
+        href: '/customs',
+        label: 'Zoll',
+        roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'],
+        children: [
+          { href: '/customs', label: 'Verzollungsauftrag' },
+          { href: '/customs/beladung', label: 'Beladung' },
+        ],
+      },
+      { href: '/track', label: 'Track & Trace', roles: ['*'] },
     ],
   },
   {
-    href: '/lager',
-    label: 'Mein Lager',
-    roles: ['CUSTOMER_USER'],
-    /** Nur wenn SessionUser.warehouseCustomer – siehe Nav-Filter unten */
-    requireWarehouseCustomer: true,
-    children: [
-      { href: '/lager/bestand', label: 'Bestand' },
-      { href: '/lager/abrechnung', label: 'Abrechnung' },
+    label: 'Disposition',
+    items: [
+      { href: '/tours/dashboard', label: 'Dispo-Dashboard', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/tours', label: 'Touren', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/tours/map', label: 'Kartenmonitor', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/fahrer', label: 'Fahrer-App', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/tours/lademittel', label: 'Lademittel', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/partner/tours', label: 'Meine Touren', roles: ['PARTNER'] },
+      { href: '/partner/lademittelscheine', label: 'Lademittel', roles: ['PARTNER'] },
     ],
   },
-  { href: '/scanning', label: 'Scanning', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/scanning/we-tc57', label: 'WE TC57', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/scanning/entladeberichte', label: 'Entladeberichte', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/tours/map', label: 'Kartenmonitor', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/customs', label: 'Verzollungsauftrag', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'] },
-  { href: '/customs/beladung', label: 'Beladung Zoll', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'] },
-  { href: '/integrations', label: 'EZOLL-Hub', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/addresses', label: 'Adressbuch', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'] },
-  { href: '/customers', label: 'Kunden', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/mandanten', label: 'Mandanten', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/partners', label: 'Partner', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
-  { href: '/users', label: 'Benutzer', roles: ['ORG_ADMIN'] },
-  { href: '/audit', label: 'Protokoll', roles: ['ORG_ADMIN'] },
-  { href: '/settings', label: 'Einstellungen', roles: ['*'] },
-  { href: '/change-password', label: 'Passwort ändern', roles: ['*'] },
-  { href: '/track', label: 'Track & Trace', roles: ['*'] },
+  {
+    label: 'Lager & Scan',
+    items: [
+      {
+        href: '/lager',
+        label: 'Lager',
+        roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'],
+        children: [
+          { href: '/lager/uebersicht', label: 'Übersicht' },
+          { href: '/lager/artikel', label: 'Artikel' },
+          { href: '/lager/einlagern', label: 'Einlagern' },
+          { href: '/lager/bestand', label: 'Bestand' },
+          { href: '/lager/plaetze', label: 'Plätze' },
+          { href: '/lager/preise', label: 'Preise' },
+          { href: '/lager/abrechnung', label: 'Abrechnung' },
+          { href: '/lager/lademittelscheine', label: 'Lademittelscheine' },
+        ],
+      },
+      {
+        href: '/lager',
+        label: 'Mein Lager',
+        roles: ['CUSTOMER_USER'],
+        requireWarehouseCustomer: true,
+        children: [
+          { href: '/lager/bestand', label: 'Bestand' },
+          { href: '/lager/abrechnung', label: 'Abrechnung' },
+        ],
+      },
+      {
+        href: '/scanning',
+        label: 'Scanning',
+        roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'],
+        children: [
+          { href: '/scanning', label: 'Übersicht' },
+          { href: '/scanning/we-tc57', label: 'WE TC57' },
+          { href: '/scanning/entladeberichte', label: 'Entladeberichte' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Stammdaten',
+    items: [
+      {
+        href: '/addresses',
+        label: 'Adressbuch',
+        roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER', 'CUSTOMER_USER'],
+      },
+      { href: '/customers', label: 'Kunden', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/partners', label: 'Partner', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/mandanten', label: 'Mandanten', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { href: '/integrations', label: 'EZOLL-Hub', roles: ['ORG_ADMIN', 'MANDANT_DISPATCHER'] },
+      { href: '/users', label: 'Benutzer', roles: ['ORG_ADMIN'] },
+      { href: '/audit', label: 'Protokoll', roles: ['ORG_ADMIN'] },
+      { href: '/settings', label: 'Einstellungen', roles: ['*'] },
+      { href: '/change-password', label: 'Passwort ändern', roles: ['*'] },
+    ],
+  },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -97,22 +147,14 @@ function isActive(pathname: string, href: string) {
   if (href === '/tours/lademittel' && pathname.startsWith('/tours/lademittel')) return true;
   if (href === '/tours/map' && pathname.startsWith('/tours/map')) return true;
   if (href === '/partner/tours' && pathname === '/partner/tours') return true;
-  if (href === '/partner/lademittelscheine' && pathname.startsWith('/partner/lademittelscheine')) return true;
+  if (href === '/partner/lademittelscheine' && pathname.startsWith('/partner/lademittelscheine'))
+    return true;
   if (href === '/lager' && pathname.startsWith('/lager')) return true;
-  if (href === '/lager/uebersicht' && pathname.startsWith('/lager/uebersicht')) return true;
-  if (href === '/lager/artikel' && pathname.startsWith('/lager/artikel')) return true;
-  if (href === '/lager/einlagern' && pathname.startsWith('/lager/einlagern')) return true;
-  if (href === '/lager/bestand' && pathname.startsWith('/lager/bestand')) return true;
-  if (href === '/lager/plaetze' && pathname.startsWith('/lager/plaetze')) return true;
-  if (href === '/lager/preise' && pathname.startsWith('/lager/preise')) return true;
-  if (href === '/lager/abrechnung' && pathname.startsWith('/lager/abrechnung')) return true;
-  if (href === '/lager/lademittelscheine' && pathname.startsWith('/lager/lademittelscheine')) return true;
-  if (href === '/lager/login-qr' && pathname.startsWith('/lager/login-qr')) return true;
+  if (href === '/scanning' && pathname.startsWith('/scanning')) return true;
   if (href === '/audit' && pathname.startsWith('/audit')) return true;
   if (href === '/customs/beladung' && pathname.startsWith('/customs/beladung')) return true;
   if (href === '/customs' && pathname.startsWith('/customs') && !pathname.startsWith('/customs/beladung'))
     return true;
-
   return false;
 }
 
@@ -168,10 +210,7 @@ export function AppShell({
     const currentId = user?.impersonating ? user.customerId : null;
     const withCurrent =
       currentId && !matches.some((c) => c.id === currentId)
-        ? [
-            ...matches,
-            ...customers.filter((c) => c.id === currentId),
-          ]
+        ? [...matches, ...customers.filter((c) => c.id === currentId)]
         : matches;
     return withCurrent.slice(0, 100);
   }, [customers, customerFilter, user?.impersonating, user?.customerId]);
@@ -224,14 +263,17 @@ export function AppShell({
     );
   }
 
-  const links = NAV.filter((n) => {
-    if (!(n.roles.includes('*') || n.roles.includes(user.role))) return false;
-    if (n.requireWarehouseCustomer && !user.warehouseCustomer) return false;
-    return true;
-  });
+  const sections = NAV_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter((n) => {
+      if (!(n.roles.includes('*') || n.roles.includes(user.role))) return false;
+      if (n.requireWarehouseCustomer && !user.warehouseCustomer) return false;
+      return true;
+    }),
+  })).filter((s) => s.items.length > 0);
+
   const showCustomerSwitcher = canUseCustomerView(user);
-  const viewName =
-    user.impersonatingCustomerName || user.customerName || 'Kunde';
+  const viewName = user.impersonatingCustomerName || user.customerName || 'Kunde';
 
   return (
     <div className="app-shell">
@@ -240,31 +282,35 @@ export function AppShell({
           <BrandLogo variant="mark" />
         </Link>
         <div>
-          <p className="sidebar-label">Navigation</p>
           <nav>
-            {links.map((l) => {
-              const active = isActive(pathname, l.href);
-              return (
-                <div key={l.href} className="nav-block">
-                  <Link href={l.href} className={active ? 'active' : undefined}>
-                    {l.label}
-                  </Link>
-                  {l.children?.length ? (
-                    <div className="nav-children">
-                      {l.children.map((c) => (
-                        <Link
-                          key={c.href}
-                          href={c.href}
-                          className={isActive(pathname, c.href) ? 'active' : undefined}
-                        >
-                          {c.label}
-                        </Link>
-                      ))}
+            {sections.map((section) => (
+              <div key={section.label} className="nav-section">
+                <p className="sidebar-label">{section.label}</p>
+                {section.items.map((l) => {
+                  const active = isActive(pathname, l.href);
+                  return (
+                    <div key={`${section.label}-${l.href}-${l.label}`} className="nav-block">
+                      <Link href={l.href} className={active ? 'active' : undefined}>
+                        {l.label}
+                      </Link>
+                      {l.children?.length ? (
+                        <div className="nav-children">
+                          {l.children.map((c) => (
+                            <Link
+                              key={c.href}
+                              href={c.href}
+                              className={isActive(pathname, c.href) ? 'active' : undefined}
+                            >
+                              {c.label}
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : null}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </div>
         {showCustomerSwitcher && (
@@ -306,9 +352,7 @@ export function AppShell({
             {user.firstName} {user.lastName}
           </div>
           <div className="role">
-            {user.impersonating
-              ? `Ansicht: ${viewName}`
-              : ROLE_LABEL[user.role] || user.role}
+            {user.impersonating ? `Ansicht: ${viewName}` : ROLE_LABEL[user.role] || user.role}
           </div>
           <button
             className="btn btn-ghost"

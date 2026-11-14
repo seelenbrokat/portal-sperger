@@ -78,8 +78,8 @@ export default function TrackPage() {
                 className="panel"
                 style={{
                   marginTop: '1rem',
-                  background: 'rgba(26,107,60,0.08)',
-                  border: '1px solid rgba(26,107,60,0.25)',
+                  background: 'rgba(0,81,146,0.08)',
+                  border: '1px solid rgba(0,81,146,0.25)',
                 }}
               >
                 <div className="muted">Erwartete Zustellung</div>

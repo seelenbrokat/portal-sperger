@@ -90,8 +90,8 @@ export default function HomePage() {
   return (
     <AuthLayout
       showTrackCta
-      headline="Grün. Global. Verbunden."
-      sub="Sendungen erfassen, verfolgen und Dokumente austauschen – für Kunden und Partner von Spedition Sperger."
+      headline="Spedition Sperger"
+      sub="Sendungen, Zoll und Dokumente – klar, schnell und in einem Portal."
     >
       <form className="auth-card" onSubmit={onSubmit}>
         <h1>Anmelden</h1>

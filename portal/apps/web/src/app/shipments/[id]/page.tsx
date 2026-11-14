@@ -207,8 +207,8 @@ function ShipmentDetailInner() {
                   marginTop: '0.5rem',
                   padding: '0.65rem 0.75rem',
                   borderRadius: 8,
-                  background: 'rgba(26,107,60,0.08)',
-                  border: '1px solid rgba(26,107,60,0.22)',
+                  background: 'rgba(0,81,146,0.08)',
+                  border: '1px solid rgba(0,81,146,0.22)',
                 }}
               >
                 <div className="muted">Erwartete Zustellung (Live-ETA)</div>
