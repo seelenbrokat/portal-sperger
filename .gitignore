@@ -11,3 +11,13 @@ android/.idea/
 android/**/build/
 *.iml
 .idea/
+
+# Full portal monorepo
+portal/node_modules/
+portal/**/node_modules/
+portal/**/.next/
+portal/**/dist/
+portal/data/
+portal/.env
+portal/.env.local
+portal/apps/api/.env

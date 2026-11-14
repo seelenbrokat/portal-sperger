@@ -1,0 +1,90 @@
+# Sperger Portal – getrennt von WOG (/opt/wog-portal).
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sperger
+      POSTGRES_PASSWORD: sperger_secret
+      POSTGRES_DB: sperger_portal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sperger -d sperger_portal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6380:6379"
+
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://sperger:sperger_secret@postgres:5432/sperger_portal?schema=public
+      REDIS_URL: redis://redis:6379
+      UPLOAD_DIR: /app/data/uploads
+      SFTP_INBOUND_DIR: /app/data/sftp/inbound
+      SFTP_OUTBOUND_DIR: /app/data/sftp/outbound
+      API_PORT: 3101
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/sftp:/app/data/sftp
+      - ./data/integrations:/app/data/integrations
+    ports:
+      - "127.0.0.1:3101:3101"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      target: worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://sperger:sperger_secret@postgres:5432/sperger_portal?schema=public
+      REDIS_URL: redis://redis:6379
+      UPLOAD_DIR: /app/data/uploads
+      SFTP_INBOUND_DIR: /app/data/sftp/inbound
+      SFTP_OUTBOUND_DIR: /app/data/sftp/outbound
+    volumes:
+      - ./data/uploads:/app/data/uploads
+      - ./data/sftp:/app/data/sftp
+      - ./data/integrations:/app/data/integrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  web:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      PORT: 3100
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: /api
+    ports:
+      - "127.0.0.1:3100:3100"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

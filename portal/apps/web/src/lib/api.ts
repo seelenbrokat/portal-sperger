@@ -1,0 +1,103 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  /** echte Rolle (ORG_ADMIN), wenn aktuell Kundenansicht aktiv */
+  realRole?: string;
+  organizationId: string;
+  customerId?: string | null;
+  customerName?: string;
+  /** Kundenportal: Lager-Modul freigeschaltet */
+  warehouseCustomer?: boolean;
+  partnerId?: string | null;
+  partnerName?: string;
+  mandantIds: string[];
+  mustChangePassword?: boolean;
+  impersonating?: boolean;
+  impersonatingCustomerName?: string | null;
+};
+
+export class ApiError extends Error {
+  status: number;
+  body: any;
+
+  constructor(status: number, body: any) {
+    const raw = body?.message;
+    const msg = Array.isArray(raw) ? raw.join(', ') : raw || `Fehler ${status}`;
+    super(String(msg));
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+  }
+}
+
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return (
+    localStorage.getItem('sperger_token') ||
+    localStorage.getItem('wog_token') /* Migration */
+  );
+}
+
+export function setSession(token: string, user: SessionUser) {
+  localStorage.setItem('sperger_token', token);
+  localStorage.setItem('sperger_user', JSON.stringify(user));
+  localStorage.removeItem('wog_token');
+  localStorage.removeItem('wog_user');
+}
+
+export function clearSession() {
+  localStorage.removeItem('sperger_token');
+  localStorage.removeItem('sperger_user');
+  localStorage.removeItem('wog_token');
+  localStorage.removeItem('wog_user');
+}
+
+export function getUser(): SessionUser | null {
+  if (typeof window === 'undefined') return null;
+  const raw =
+    localStorage.getItem('sperger_user') || localStorage.getItem('wog_user');
+  return raw ? (JSON.parse(raw) as SessionUser) : null;
+}
+
+export async function api<T = unknown>(
+  path: string,
+  options: RequestInit & { auth?: boolean } = {},
+): Promise<T> {
+  const headers = new Headers(options.headers || {});
+  if (!(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  if (options.auth !== false) {
+    const token = getToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, err);
+  }
+  if (res.status === 204) return undefined as T;
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) return res.json();
+  return res as unknown as T;
+}
+
+export function statusLabel(status: string) {
+  const map: Record<string, string> = {
+    DRAFT: 'Entwurf',
+    SUBMITTED: 'Übermittelt',
+    ACCEPTED: 'Angenommen',
+    PICKED_UP: 'Abgeholt',
+    IN_TRANSIT: 'Unterwegs',
+    OUT_FOR_DELIVERY: 'In Zustellung',
+    DELIVERED: 'Zugestellt',
+    EXCEPTION: 'Störung',
+    CANCELLED: 'Storniert',
+  };
+  return map[status] || status;
+}
