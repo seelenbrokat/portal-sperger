@@ -10,7 +10,8 @@ type Session = { email: string; at: number };
 
 const NAV = [
   { href: "/dashboard", label: "Übersicht" },
-  { href: "/sendungserfassung", label: "Sendungserfassung" },
+  { href: "/sendungen", label: "Sendungen" },
+  { href: "/sendungserfassung", label: "Neuer Auftrag" },
   { href: "/zollerfassung", label: "Zollerfassung" },
   { href: "/dokumente", label: "Dokumente" },
   { href: "/kunden", label: "Kunden" },
@@ -73,8 +74,8 @@ export function PortalShell({
               href={item.href}
               className={
                 pathname === item.href ||
-                (item.href === "/sendungserfassung" &&
-                  pathname.startsWith("/sendungen"))
+                (item.href === "/sendungen" &&
+                  pathname.startsWith("/sendungen/"))
                   ? styles.active
                   : undefined
               }

@@ -46,8 +46,11 @@ export default function DashboardPage() {
       </section>
 
       <section className={styles.actions}>
-        <Link className="btn btn-primary" href="/sendungserfassung">
-          Sendung erfassen
+        <Link className="btn btn-primary" href="/sendungen">
+          Sendungen / Etiketten / Ladeliste
+        </Link>
+        <Link className="btn btn-secondary" href="/sendungserfassung">
+          Neuer Auftrag
         </Link>
         <Link className="btn btn-secondary" href="/zollerfassung">
           Zoll erfassen

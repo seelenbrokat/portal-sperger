@@ -385,17 +385,9 @@ export default function SendungserfassungPage() {
                         <div className={styles.actions}>
                           <Link
                             className="btn btn-secondary"
-                            href={`/sendungen/${item.id}/etiketten`}
-                            target="_blank"
+                            href={`/sendungen/${item.id}`}
                           >
-                            Etiketten
-                          </Link>
-                          <Link
-                            className="btn btn-secondary"
-                            href={`/sendungen/${item.id}/ladeliste`}
-                            target="_blank"
-                          >
-                            Ladeliste
+                            Etiketten / Ladeliste
                           </Link>
                         </div>
                         <div

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { PortalShell, usePortalEmail } from "../../../components/PortalShell";
+import { createLabelsPdf, createLoadingListPdf } from "../../../lib/shipmentDocs";
 import {
   DOC_TYPE_LABELS,
   deleteDokument,
@@ -29,6 +30,7 @@ export default function SendungDetailPage() {
   const [docType, setDocType] = useState<DocType>("CMR");
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -40,7 +42,40 @@ export default function SendungDetailPage() {
 
   useEffect(() => {
     reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  async function createLabels() {
+    if (!sendung) return;
+    setError("");
+    setMessage("");
+    setBusy("labels");
+    try {
+      const doc = await createLabelsPdf(sendung, email || "portal");
+      setMessage(`Etiketten-PDF erstellt und an die Sendung gehängt: ${doc.fileName}`);
+      reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Etiketten fehlgeschlagen");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function createLoadingList() {
+    if (!sendung) return;
+    setError("");
+    setMessage("");
+    setBusy("loading-list");
+    try {
+      const doc = await createLoadingListPdf(sendung, email || "portal");
+      setMessage(`Ladeliste erstellt und an die Sendung gehängt: ${doc.fileName}`);
+      reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ladeliste fehlgeschlagen");
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function onUpload(e: FormEvent) {
     e.preventDefault();
@@ -88,8 +123,7 @@ export default function SendungDetailPage() {
     return (
       <PortalShell title="Sendung">
         <p className={styles.empty}>
-          Sendung nicht gefunden.{" "}
-          <Link href="/sendungserfassung">Zur Erfassung</Link>
+          Sendung nicht gefunden. <Link href="/sendungen">Zur Sendungsliste</Link>
         </p>
       </PortalShell>
     );
@@ -100,10 +134,49 @@ export default function SendungDetailPage() {
   return (
     <PortalShell
       title={`Sendung ${sendung.referenz}`}
-      subtitle="Etiketten, Ladeliste und Dokumente"
+      subtitle="Etiketten und Ladeliste erstellen – Dokumente werden an die Sendung gehängt"
     >
       <div className={styles.layout}>
         <section className={styles.formCard}>
+          <div
+            style={{
+              background: "var(--sperger-blue-soft)",
+              border: "1px solid var(--sperger-line)",
+              borderRadius: "var(--radius-lg)",
+              padding: "1rem",
+              marginBottom: "1rem",
+            }}
+          >
+            <strong>Auftrag erfasst</strong>
+            <p style={{ margin: "0.35rem 0 0.75rem", color: "var(--sperger-muted)" }}>
+              Wie im WOG-Portal: Etiketten und Ladeliste / Auftragsbestätigung als PDF erzeugen.
+              Die Dateien erscheinen unten bei den Dokumenten und öffnen sich zum Drucken.
+            </p>
+            <div className={styles.actions}>
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={busy === "labels" || sendung.status === "Storniert"}
+                onClick={createLabels}
+              >
+                {busy === "labels" ? "Etiketten werden erstellt…" : "Etiketten erstellen"}
+              </button>
+              <button
+                className="btn btn-secondary"
+                type="button"
+                disabled={busy === "loading-list"}
+                onClick={createLoadingList}
+              >
+                {busy === "loading-list"
+                  ? "Ladeliste wird erstellt…"
+                  : "Ladeliste / Auftragsbestätigung erstellen"}
+              </button>
+            </div>
+          </div>
+
+          {message ? <p className={styles.ok}>{message}</p> : null}
+          {error ? <p className={styles.err}>{error}</p> : null}
+
           <div
             style={{
               display: "flex",
@@ -142,19 +215,8 @@ export default function SendungDetailPage() {
           </p>
 
           <div className={styles.actions} style={{ marginTop: "1rem" }}>
-            <Link
-              className="btn btn-primary"
-              href={`/sendungen/${sendung.id}/etiketten`}
-              target="_blank"
-            >
-              Etiketten drucken
-            </Link>
-            <Link
-              className="btn btn-secondary"
-              href={`/sendungen/${sendung.id}/ladeliste`}
-              target="_blank"
-            >
-              Ladeliste / Auftragsbestätigung
+            <Link className="btn btn-secondary" href="/sendungen">
+              Alle Sendungen
             </Link>
             <button
               className="btn btn-secondary"
@@ -168,14 +230,12 @@ export default function SendungDetailPage() {
               Status: Unterwegs
             </button>
           </div>
-          {message ? <p className={styles.ok}>{message}</p> : null}
-          {error ? <p className={styles.err}>{error}</p> : null}
         </section>
 
         <section className={styles.formCard}>
-          <h2>Dokument hochladen</h2>
+          <h2>Weiteres Dokument hochladen</h2>
           <p style={{ margin: "0 0 0.75rem", color: "var(--sperger-muted)" }}>
-            CMR, Rechnung, Zollpapiere, POD u. a. – analog WOG-Dokumentenmodul.
+            CMR, Rechnung, Zollpapiere, POD u. a.
           </p>
           <form className={styles.form} onSubmit={onUpload}>
             <div className={styles.grid2}>
@@ -221,9 +281,11 @@ export default function SendungDetailPage() {
         </section>
 
         <section className={styles.listCard}>
-          <h2>Dokumente ({docs.length})</h2>
+          <h2>Dokumente zur Sendung ({docs.length})</h2>
           {docs.length === 0 ? (
-            <p className={styles.empty}>Noch keine Dokumente.</p>
+            <p className={styles.empty}>
+              Noch keine Dokumente. Oben Etiketten oder Ladeliste erstellen.
+            </p>
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
@@ -255,20 +317,20 @@ export default function SendungDetailPage() {
                             {d.note}
                           </div>
                         ) : null}
-                        {d.sizeBytes > 0 ? (
-                          <div
-                            style={{
-                              color: "var(--sperger-muted)",
-                              fontSize: "0.82rem",
-                            }}
-                          >
-                            {(d.sizeBytes / 1024).toFixed(0)} KB
-                          </div>
-                        ) : null}
                       </td>
                       <td>{formatWhen(d.createdAt)}</td>
                       <td>
                         <div className={styles.actions}>
+                          {d.dataUrl ? (
+                            <a
+                              className="btn btn-primary"
+                              href={d.dataUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Öffnen / Drucken
+                            </a>
+                          ) : null}
                           {d.dataUrl ? (
                             <a
                               className="btn btn-secondary"
@@ -277,22 +339,6 @@ export default function SendungDetailPage() {
                             >
                               Download
                             </a>
-                          ) : d.type === "LABEL" ? (
-                            <Link
-                              className="btn btn-secondary"
-                              href={`/sendungen/${sendung.id}/etiketten`}
-                              target="_blank"
-                            >
-                              Öffnen
-                            </Link>
-                          ) : d.type === "LOADING_LIST" ? (
-                            <Link
-                              className="btn btn-secondary"
-                              href={`/sendungen/${sendung.id}/ladeliste`}
-                              target="_blank"
-                            >
-                              Öffnen
-                            </Link>
                           ) : null}
                           <button
                             className="btn btn-secondary"
