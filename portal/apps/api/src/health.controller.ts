@@ -10,7 +10,7 @@ export class HealthController {
   @Public()
   @Get()
   health() {
-    return { status: 'ok', service: 'wog-portal-api', time: new Date().toISOString() };
+    return { status: 'ok', service: 'sperger-portal-api', time: new Date().toISOString() };
   }
 
   /** Readiness – prüft DB. Für Monitoring/Uptime. */
@@ -21,14 +21,14 @@ export class HealthController {
       await this.prisma.$queryRaw`SELECT 1`;
       return {
         status: 'ok',
-        service: 'wog-portal-api',
+        service: 'sperger-portal-api',
         db: 'up',
         time: new Date().toISOString(),
       };
     } catch {
       throw new ServiceUnavailableException({
         status: 'error',
-        service: 'wog-portal-api',
+        service: 'sperger-portal-api',
         db: 'down',
         time: new Date().toISOString(),
       });
